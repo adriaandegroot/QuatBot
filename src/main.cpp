@@ -18,6 +18,8 @@
 #include <csapi/joining.h>
 #include <events/roommessageevent.h>
 
+#include "command.h"
+
 static constexpr const QChar COMMAND_PREFIX(0x1575); // ᕵ Nunavik Hi
 
 class QuatBot : public QObject
@@ -48,6 +50,8 @@ public:
         connect(joinRoom, &QMatrixClient::BaseJob::success,
             [this, joinRoom]()
             {
+                m_commands = new CommandHandler( COMMAND_PREFIX );
+                
                 qDebug() << "Joined room" << this->m_roomName << "successfully.";
                 m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
                 connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &QuatBot::baseStateLoaded);
@@ -60,6 +64,7 @@ public:
     {
         if(m_room)
             m_room->leaveRoom();
+        delete m_commands;
     }
     
 protected:
@@ -88,9 +93,11 @@ protected:
             const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
             if (event)
             {
-                if(event->plainBody().startsWith(COMMAND_PREFIX))
+                QString message = event->plainBody();
+                
+                if(m_commands->isCommand(message))
                 {
-                    qDebug() << "Command received" << event->plainBody();
+                    m_commands->handleCommand(m_room, m_commands->extractCommand(message));
                 }
             }
         }
@@ -99,6 +106,8 @@ protected:
     
 private:
     QMatrixClient::Room* m_room = nullptr;
+    CommandHandler* m_commands = nullptr;
+    
     QMatrixClient::Connection& m_conn;
     QString m_roomName;
     bool m_newlyConnected = true;
