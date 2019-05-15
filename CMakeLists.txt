@@ -8,11 +8,18 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(quatbot VERSION 0.1)
+project(quatbot VERSION 0.1 LANGUAGES CXX)
 
-find_package(Qt5 5.10 REQUIRED COMPONENTS Core)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt5 5.10 REQUIRED COMPONENTS Core Gui Multimedia Network)
 find_package(QMatrixClient REQUIRED)
 
 add_executable(quatbot
     src/main.cpp
+)
+target_link_libraries(quatbot
+    PUBLIC 
+        QMatrixClient  # It pulls in Qt5 bits
 )
