@@ -11,12 +11,14 @@
 
 #include <QProcess>
 
-void echo(QMatrixClient::Room* room, const QStringList& l)
+namespace QuatBot
+{
+static void echo(QMatrixClient::Room* room, const QStringList& l)
 {
     room->postPlainText(l.join(' '));
 }
 
-void fortune(QMatrixClient::Room* room)
+static void fortune(QMatrixClient::Room* room)
 {
     QProcess f;
     f.start("/usr/bin/fortune", {"freebsd-tips"});
@@ -30,17 +32,22 @@ void fortune(QMatrixClient::Room* room)
         echo(room, QStringList{"No fortune for you!"});
 }
 
-CommandHandler::CommandHandler(QChar prefixChar) :
+BasicCommands::BasicCommands(QChar prefixChar, Bot* parent) :
+    Watcher(parent),
     m_prefix(prefixChar)
 {
 }
 
-QString munge(const QString& s)
+BasicCommands::~BasicCommands()
+{
+}
+
+static QString munge(const QString& s)
 {
     return s.trimmed();
 }
 
-CommandArgs CommandHandler::extractCommand(QString s)
+CommandArgs BasicCommands::extractCommand(QString s)
 {
     if (!isCommand(s))
         return CommandArgs{};
@@ -53,7 +60,7 @@ CommandArgs CommandHandler::extractCommand(QString s)
     return {munge(parts[0]), r};
 }
 
-void CommandHandler::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)
+void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)
 {
     if (l.command == QStringLiteral("echo"))
         echo(room, l.args);
@@ -61,4 +68,13 @@ void CommandHandler::handleCommand(QMatrixClient::Room* room, const CommandArgs&
         fortune(room);
     else
         echo(room, QStringList{QString("I don't understand '%1'.").arg(l.command)});
+}
+
+void QuatBot::BasicCommands::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
+{
+    QString message = event->plainBody();
+    if (isCommand(message))
+        handleCommand(room, extractCommand(message));
+}
+
 }
