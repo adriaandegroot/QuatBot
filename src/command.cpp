@@ -72,6 +72,11 @@ QString BasicCommands::moduleName() const
     return QString();
 }
 
+static QString munge(const QTime& t)
+{
+    return t.toString();
+}
+
 void BasicCommands::handleCommand(const CommandArgs& l)
 {
     if (l.command == QStringLiteral("echo"))
@@ -158,12 +163,26 @@ void BasicCommands::handleCommand(const CommandArgs& l)
             message(QString("Goodbye (bot operation terminated)!"));
         }
     }
+    else if (l.command == QStringLiteral("status"))
+    {
+        message(QString(
+            "It is %1. Your message was sent at %2.\n"
+            "I can see %3 people in the room. I have processed %4 messages and %5 commands.")
+            .arg(munge(QTime::currentTime()), munge(m_lastMessageTime))
+            .arg(m_bot->userIds().count())
+            .arg(m_messageCount)
+            .arg(m_commandCount)
+        );
+    }
     else
         message(QString("I don't understand '%1'.").arg(l.command));
+    m_commandCount++;
 }
 
 void QuatBot::BasicCommands::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 {
+    m_lastMessageTime = event->timestamp().time();
+    m_messageCount++;
 }
 
 }

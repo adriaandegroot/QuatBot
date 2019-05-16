@@ -10,6 +10,8 @@
 
 #include "watcher.h"
 
+#include <QTime>
+
 namespace QuatBot
 {
 class BasicCommands : public Watcher
@@ -22,6 +24,11 @@ public:
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
+
+private:
+    QTime m_lastMessageTime;
+    int m_messageCount = 0;
+    int m_commandCount = 0;
 };
     
 }  // namespace
