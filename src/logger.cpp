@@ -107,6 +107,8 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
 
 QString Logger::Private::makeName(QString s)
 {
+    if (s.isEmpty())
+        return QString("/tmp/quatbot.log");
     return QString("/tmp/quatbot-%1.log").arg(s.remove(QRegularExpression("[^a-zA-Z0-9_]")));
 }
 
@@ -126,12 +128,11 @@ void Logger::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomM
 {
     d->log(event);
     if (isCommand(event))
-        handleCommand(room, event);
+        handleCommand(room, CommandArgs(event));
 }
 
-void Logger::handleCommand(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
+void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
 {
-    auto cmd = CommandArgs(event);
     if (cmd.command == "log")
     {
         if (cmd.args.count() < 1)
@@ -139,7 +140,7 @@ void Logger::handleCommand(QMatrixClient::Room* room, const QMatrixClient::RoomM
             // Send help?
         }
         else if (cmd.args.first() == "on")
-            d->open(event->id());
+            d->open(cmd.id);
         else if (cmd.args.first() == "off")
             d->close();
     }

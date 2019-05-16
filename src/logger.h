@@ -25,10 +25,9 @@ public:
     virtual ~Logger() override;
 
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) override;
-    
+    virtual void handleCommand(QMatrixClient::Room* room, const CommandArgs&) override;
+
 private:
-    void handleCommand(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*);
-    
     Private* d;
 };
     

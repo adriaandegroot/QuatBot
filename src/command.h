@@ -19,9 +19,7 @@ public:
     virtual ~BasicCommands() override;
 
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) override;
-    
-protected:    
-    void handleCommand(QMatrixClient::Room* room, const CommandArgs&);
+    virtual void handleCommand(QMatrixClient::Room* room, const CommandArgs&) override;
 };
     
 }  // namespace

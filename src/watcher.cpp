@@ -35,6 +35,7 @@ CommandArgs::CommandArgs(QString s)
 CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e) :
     CommandArgs(e->plainBody())
 {
+    id = e->id();
 }
 
 

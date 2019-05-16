@@ -29,6 +29,9 @@ struct CommandArgs
     static bool isCommand(const QString& s);
     static bool isCommand(const QMatrixClient::RoomMessageEvent*);
     
+    bool isValid() const { return !command.isEmpty(); }
+    
+    QString id;  // event Id, if available
     QString command;
     QStringList args;
 };
@@ -40,6 +43,7 @@ public:
     virtual ~Watcher();
     
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
+    virtual void handleCommand(QMatrixClient::Room*, const CommandArgs&) = 0;
 
     // Duplicated for convenience
     static bool isCommand(const QString& s) { return CommandArgs::isCommand(s); }
