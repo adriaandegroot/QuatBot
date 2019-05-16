@@ -27,19 +27,11 @@
 
 namespace QuatBot
 {
-void message(QMatrixClient::Room* room, const QStringList& l)
+QString Bot::userLookup(const QString& userName)
 {
-    message(room, l.join(' '));
-}
-
-void message(QMatrixClient::Room* room, const QString& s)
-{
-    room->postPlainText(s);
-    qDebug() << "**BOT**" << s;
-}
-
-QString userLookup(QMatrixClient::Room* room, const QString& userName)
-{
+    if (!m_room)
+        return QString();
+    
     QString n = userName.trimmed();
     if (n.isEmpty())
         return QString();
@@ -47,20 +39,22 @@ QString userLookup(QMatrixClient::Room* room, const QString& userName)
     if (n.startsWith('@') && n.contains(':'))
         return n;
     
-    for (const auto& u : room->users())
+    for (const auto& u : m_room->users())
     {
-        if (n == u->displayname(room))
+        if (n == u->displayname(m_room))
             return u->id();
     }
     
     return QString();
 }
 
-QStringList userIds(QMatrixClient::Room* room)
+QStringList Bot::userIds()
 {
     QStringList l;
-
-    for (const auto& u : room->users())
+    if (!m_room)
+        return l;
+    
+    for (const auto& u : m_room->users())
     {
         l << u->id();
     }
@@ -141,7 +135,7 @@ void Bot::addedMessages(int from, int to)
         if (event)
         {
             for(const auto& w : m_watchers)
-                w->handleMessage(m_room, event);
+                w->handleMessage(event);
             
             CommandArgs cmd(event);
             if (cmd.isValid())
@@ -152,7 +146,7 @@ void Bot::addedMessages(int from, int to)
                     if (w->moduleName() == cmd.command)
                     {
                         cmd.pop();
-                        w->handleCommand(m_room, cmd);
+                        w->handleCommand(cmd);
                         handled = true;
                         break;
                     }
@@ -160,7 +154,7 @@ void Bot::addedMessages(int from, int to)
                 // Special case: unhandled ones go to BasicCommands
                 // which handles all the "rest" items.
                 if (!handled)
-                    m_watchers[0]->handleCommand(m_room, cmd);
+                    m_watchers[0]->handleCommand(cmd);
             }
         }
     }
@@ -189,22 +183,38 @@ bool Bot::setOps(const QString& user, bool op)
     else return false;  // Can't remove last op
 }
 
-bool Bot::checkOps(const QString& user)
+bool Bot::checkOps(const QString& user, Silent s)
 {
     return !user.isEmpty() && m_operators.contains(user);
 }
 
-bool Bot::checkOps(const QuatBot::CommandArgs& cmd)
+bool Bot::checkOps(const QuatBot::CommandArgs& cmd, Silent s)
 {
-    return checkOps(cmd.user);
+    return checkOps(cmd.user, s);
 }
 
-bool Bot::checkOps(const QuatBot::CommandArgs& cmd, QMatrixClient::Room* room)
+bool Bot::checkOps(const QuatBot::CommandArgs& cmd)
 {
-    if (checkOps(cmd))
+    if (checkOps(cmd, Silent{}))
         return true;
-    message(room, "Only operators can do that.");
+    message("Only operators can do that.");
     return false;
 }
+
+void Bot::message(const QStringList& l)
+{
+    if (!m_room)
+        return;
+    message(l.join(' '));
+}
+
+void Bot::message(const QString& s)
+{
+    if (!m_room)
+        return;
+    m_room->postPlainText(s);
+    qDebug() << "**BOT**" << s;
+}
+
 
 }  // namespace

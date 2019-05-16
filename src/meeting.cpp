@@ -29,7 +29,7 @@ QString Meeting::moduleName() const
     return QStringLiteral("meeting");
 }
 
-void Meeting::handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent* e)
+void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
 {
     // New speaker?
     if ((m_state != State::None) && !m_participantsDone.contains(e->senderId()) && !m_participants.contains(e->senderId()))
@@ -42,11 +42,11 @@ void Meeting::handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessa
     }
 }
 
-void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
+void Meeting::handleCommand(const CommandArgs& cmd)
 {
     if (cmd.command == QStringLiteral("status"))
     {
-        status(room);
+        status();
     }
     else if (cmd.command == QStringLiteral("rollcall"))
     {
@@ -58,47 +58,47 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             m_participants.clear();
             m_participants.append(cmd.user);
             m_chair = cmd.user;
-            shortStatus(room);
-            message(room, QStringList{"Hello @room, this is the roll-call!"} << userIds(room));
+            shortStatus();
+            message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
         }
         else
         {
-            shortStatus(room);
+            shortStatus();
         }
     }
     else if (cmd.command == QStringLiteral("next"))
     {
         if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
         {
-            shortStatus(room);
+            shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd, room))
+        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
         {
             if (m_state == State::RollCall)
             {
                 m_state = State::InProgress;
-                status(room);
+                status();
                 m_participantsDone.clear();
             }
-            doNext(room);
+            doNext();
         }
     }
     else if (cmd.command == QStringLiteral("skip"))
     {
         if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
         {
-            shortStatus(room);
+            shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd, room))
+        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
         {
             for (const auto& u : cmd.args)
             {
-                QString user = userLookup(room, u);
+                QString user = m_bot->userLookup(u);
                 if (!user.isEmpty())
                 {
                     m_participants.removeAll(user);
                     m_participantsDone.insert(user);
-                    message(room, QString("User %1 will be skipped this meeting.").arg(user));
+                    message(QString("User %1 will be skipped this meeting.").arg(user));
                 }
             }
         }
@@ -107,19 +107,19 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     {
         if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
         {
-            shortStatus(room);
+            shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd, room))
+        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
         {
             for (const auto& u : cmd.args)
             {
-                QString user = userLookup(room, u);
+                QString user = m_bot->userLookup(u);
                 if (!user.isEmpty())
                 {
                     m_participants.removeAll(user);
                     m_participantsDone.remove(user);
                     m_participants.insert(0, user);
-                    message(room, QString("User %1 is up next.").arg(user));
+                    message(QString("User %1 is up next.").arg(user));
                 }
             }
         }
@@ -128,36 +128,36 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     {
         if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
         {
-            shortStatus(room);
+            shortStatus();
         }
         else
         {
             m_breakouts.append(cmd.args.join(' '));
-            message(room, QString("Registered breakout '%1'.").arg(m_breakouts.last()));
+            message(QString("Registered breakout '%1'.").arg(m_breakouts.last()));
         }
     }
     else
     {
-        message(room, QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
+        message(QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
     }
 }
 
-void Meeting::doNext(QMatrixClient::Room* room)
+void Meeting::doNext()
 {
     if (m_state != State::InProgress)
     {
-        shortStatus(room);
+        shortStatus();
         return;
     }
     if (m_participants.count() < 1)
     {
         m_state = State::None;
-        shortStatus(room);
+        shortStatus();
         if (m_breakouts.count() > 0)
         {
             for(const auto& b : m_breakouts)
             {
-                message(room, QString("Breakout: %1").arg(b));
+                message(QString("Breakout: %1").arg(b));
             }
         }
         return;
@@ -168,37 +168,37 @@ void Meeting::doNext(QMatrixClient::Room* room)
     
     if (m_participants.count() > 0)
     {
-        message(room, QString("%1, you're up (after that, %2).").arg(onDeck, m_participants.first()));
+        message(QString("%1, you're up (after that, %2).").arg(onDeck, m_participants.first()));
     }
     else
     {
-        message(room, QString("%1, you're up (after that, we're done!).").arg(onDeck));
+        message(QString("%1, you're up (after that, we're done!).").arg(onDeck));
     }
 }
 
-void Meeting::shortStatus(QMatrixClient::Room* room) const
+void Meeting::shortStatus() const
 {
     switch (m_state)
     {
         case State::None:
-            message(room, QString("No meeting in progress."));
+            message(QString("No meeting in progress."));
             return;
         case State::RollCall:
-            message(room, QString("Doing the rollcall."));
+            message(QString("Doing the rollcall."));
             return;
         case State::InProgress:
-            message(room, QString("Meeting in progress."));
+            message(QString("Meeting in progress."));
             return;
     }
-    message(room, QString("The meeting is in disarray."));
+    message(QString("The meeting is in disarray."));
 }
 
-void Meeting::status(QMatrixClient::Room* room) const
+void Meeting::status() const
 {
-    shortStatus(room);
+    shortStatus();
     if (m_state != State::None)
     {
-        message(room, QString("There are %1 participants.").arg(m_participants.count()));
+        message(QString("There are %1 participants.").arg(m_participants.count()));
     }
 }
 
