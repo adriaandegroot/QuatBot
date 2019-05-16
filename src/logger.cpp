@@ -24,6 +24,7 @@ public:
     virtual ~Private();
     
     void log(const QMatrixClient::RoomMessageEvent* message);
+    void log(const QString& s);
     void report(Bot*);
 
     void open(const QString& name);
@@ -101,6 +102,16 @@ void Logger::Private::open(const QString& name)
     m_lines = 0;
 }
 
+void Logger::Private::log(const QString& s)
+{
+    if (m_stream)
+    {
+        ++m_lines;
+        (*m_stream) << qSetFieldWidth(6) << m_lines << qSetFieldWidth(-1)
+            << "\t\t\t\t\t" << s << '\n';
+    }
+}
+
 void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
 {
     if (m_stream)
@@ -158,6 +169,11 @@ QString Logger::moduleName() const
 void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 {
     d->log(event);
+}
+
+void Logger::handleMessage(const QString& s)
+{
+    d->log(s);
 }
 
 void Logger::handleCommand(const CommandArgs& cmd)

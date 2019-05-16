@@ -213,6 +213,8 @@ void Bot::message(const QString& s)
     if (!m_room)
         return;
     m_room->postPlainText(s);
+    for (const auto& p : m_watchers)
+        p->handleMessage(s);
     qDebug() << "**BOT**" << s;
 }
 

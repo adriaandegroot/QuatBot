@@ -26,6 +26,7 @@ public:
 
     virtual QString moduleName() const override;
     
+    virtual void handleMessage(const QString&) override;
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
 

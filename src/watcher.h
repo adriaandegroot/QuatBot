@@ -88,7 +88,11 @@ public:
      */
     virtual QString moduleName() const = 0;
     
+    /// @brief Handle "virtual" message sent by the bot
+    virtual void handleMessage(const QString&);
+    /// @brief Handle message from the Matrix server
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) = 0;
+    /// @brief Called **after** handleMessage() for those containing a command
     virtual void handleCommand(const CommandArgs&) = 0;
 
 protected:
