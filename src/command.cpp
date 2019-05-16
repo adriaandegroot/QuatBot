@@ -16,18 +16,47 @@
 
 namespace QuatBot
 {
-static QString fortune()
+static QString runProcess(const QString& executable, const QStringList& args, const QString& failure)
 {
     QProcess f;
-    f.start("/usr/bin/fortune", {"freebsd-tips"});
+    f.start(executable, args);
     f.waitForFinished();
     if (f.exitCode()==0)
     {
         return QString::fromLatin1(f.readAllStandardOutput());
     }
     else
-        return QStringLiteral("No fortune for you!");
+        return failure;
 }
+
+static QString fortune()
+{
+    return runProcess(QStringLiteral("/usr/bin/fortune"), {"freebsd-tips"}, QStringLiteral("No fortune for you!"));
+}
+
+#ifdef ENABLE_COWSAY
+// Copy because we modify the string
+static QString cowsay(QString message)
+{
+    static int instance = 0;
+    static const char* const specials[16]={
+        nullptr, nullptr, "-d", nullptr, 
+        nullptr, nullptr, "-s", "-p", 
+        nullptr, "-y", nullptr, "-g",
+        "-w", "-t", "-b", nullptr};
+    
+    QStringList arg;
+    // Go around and around mod 16
+    if (specials[instance])
+        arg << specials[instance];
+    instance = (instance+1) & 0xf;
+    // The message
+    message.truncate(40);
+    arg << message;
+    
+    return runProcess(QStringLiteral("/usr/local/bin/cowsay"), arg, "Moo!");
+}
+#endif
 
 BasicCommands::BasicCommands(Bot* parent) :
     Watcher(parent)
@@ -53,6 +82,12 @@ void BasicCommands::handleCommand(const CommandArgs& l)
     {
         message(fortune());
     }
+#ifdef ENABLE_COWSAY
+    else if (l.command == QStringLiteral("cowsay"))
+    {
+        message(cowsay(l.args.join(' ')));
+    }
+#endif
     else if (l.command == QStringLiteral("op"))
     {
         if (m_bot->checkOps(l))

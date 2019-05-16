@@ -13,6 +13,8 @@ project(quatbot VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(COWSAY "Enables the ~cowsay command (requires /usr/local/bin/cowsay)" OFF)
+
 find_package(Qt5 5.10 REQUIRED COMPONENTS Core Gui Multimedia Network)
 find_package(QMatrixClient REQUIRED)
 
@@ -28,3 +30,7 @@ target_link_libraries(quatbot
     PUBLIC 
         QMatrixClient  # It pulls in Qt5 bits
 )
+
+if(COWSAY)
+    target_compile_definitions(quatbot PRIVATE ENABLE_COWSAY)
+endif()
