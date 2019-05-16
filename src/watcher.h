@@ -53,6 +53,9 @@ public:
     static void message(QMatrixClient::Room* room, const QString& s);
     
 protected:
+    /// @brief human-readable version of the-command-for @p s with command-prefix
+    QString displayCommand(const QString& s);
+    
     Bot* m_bot;
 };
     

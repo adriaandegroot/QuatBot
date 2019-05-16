@@ -72,4 +72,10 @@ Watcher::~Watcher()
 {
 }
 
+QString Watcher::displayCommand(const QString& s)
+{
+    return QString("%1%2").arg(COMMAND_PREFIX).arg(s);
+}
+
+
 }  // namespace

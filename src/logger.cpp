@@ -22,12 +22,17 @@ public:
     virtual ~Private();
     
     void log(const QMatrixClient::RoomMessageEvent* message);
+    void report(QMatrixClient::Room* r);
 
     void open(const QString& name);
     void close();
     bool isOpen() const
     {
         return m_stream != nullptr;
+    }
+    QString fileName() const
+    {
+        return m_file ? m_file->fileName() : QString();
     }
     
 private:
@@ -91,6 +96,7 @@ void Logger::Private::open(const QString& name)
         return;
     }
     m_stream = t;
+    m_lines = 0;
 }
 
 void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
@@ -105,12 +111,29 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
     }
 }
 
+void Logger::Private::report(QMatrixClient::Room* room)
+{
+    if (!isOpen())
+    {
+        Watcher::message(room, "Logging is off.");
+    }
+    else if (m_lines > 0)
+    {
+        Watcher::message(room, QString("Logging is on, %1 lines.").arg(m_lines));
+    }
+    else
+        Watcher::message(room, QString("Logging to %1").arg(m_file->fileName()));
+}
+        
+
 QString Logger::Private::makeName(QString s)
 {
     if (s.isEmpty())
         return QString("/tmp/quatbot.log");
     return QString("/tmp/quatbot-%1.log").arg(s.remove(QRegularExpression("[^a-zA-Z0-9_]")));
 }
+
+
 
 
 Logger::Logger(Bot* parent) :
@@ -135,14 +158,26 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
 {
     if (cmd.command == "log")
     {
+        bool statusReport = true;
         if (cmd.args.count() < 1)
         {
-            // Send help?
+            message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand("log")));
+            statusReport = false;
         }
         else if (cmd.args.first() == "on")
             d->open(cmd.id);
         else if (cmd.args.first() == "off")
             d->close();
+        else if (cmd.args.first() == "status")
+            ;  // Nothing, the status report is the side-effect
+        else
+        {
+            message(room, QString("Unknown %1-subcommand %2").arg(displayCommand("log"), cmd.args.first()));
+            statusReport = false;
+        }
+        
+        if (statusReport)
+            d->report(room);
     }
 }
 
