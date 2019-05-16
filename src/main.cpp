@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         [&]()
         {
             qDebug() << "Connected to" << conn.homeserver();
-            conn.setLazyLoading(false);
+            conn.setLazyLoading(true);
             conn.syncLoop();
             QuatBot::Bot* bot = new QuatBot::Bot(conn, argv[3]);
         }
