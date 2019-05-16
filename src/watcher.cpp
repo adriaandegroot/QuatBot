@@ -7,11 +7,42 @@
 
 #include "watcher.h"
 
-QuatBot::Watcher::Watcher(QuatBot::Bot* parent) :
+namespace QuatBot
+{
+static constexpr const QChar COMMAND_PREFIX(0x1575); // ᕵ Nunavik Hi
+
+Watcher::Watcher(QuatBot::Bot* parent) :
     m_bot(parent)
 {
 }
 
-QuatBot::Watcher::~Watcher()
+Watcher::~Watcher()
 {
 }
+
+
+static QString munge(const QString& s)
+{
+    return s.trimmed();
+}
+
+CommandArgs Watcher::extractCommand(QString s)
+{
+    if (!isCommand(s))
+        return CommandArgs{};
+    
+    QStringList parts = s.remove(0,1).split(' ');
+    QStringList r;
+    for (int i=1; i<parts.count(); ++i)
+        r << munge(parts[i]);
+                   
+    return {munge(parts[0]), r};
+}
+
+bool Watcher::isCommand(const QString& s)
+{
+    return s.startsWith(COMMAND_PREFIX);
+}
+
+
+}  // namespace

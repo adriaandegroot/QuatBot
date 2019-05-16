@@ -24,8 +24,6 @@
 
 namespace QuatBot
 {
-static constexpr const QChar COMMAND_PREFIX(0x1575); // ᕵ Nunavik Hi
-
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         QObject(),
         m_conn(conn),
@@ -52,7 +50,7 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         [this, joinRoom]()
         {
             m_watchers.reserve(1);
-            m_watchers.append(new BasicCommands(COMMAND_PREFIX, this));
+            m_watchers.append(new BasicCommands(this));
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);

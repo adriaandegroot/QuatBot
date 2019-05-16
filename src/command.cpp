@@ -32,32 +32,13 @@ static void fortune(QMatrixClient::Room* room)
         echo(room, QStringList{"No fortune for you!"});
 }
 
-BasicCommands::BasicCommands(QChar prefixChar, Bot* parent) :
-    Watcher(parent),
-    m_prefix(prefixChar)
+BasicCommands::BasicCommands(Bot* parent) :
+    Watcher(parent)
 {
 }
 
 BasicCommands::~BasicCommands()
 {
-}
-
-static QString munge(const QString& s)
-{
-    return s.trimmed();
-}
-
-CommandArgs BasicCommands::extractCommand(QString s)
-{
-    if (!isCommand(s))
-        return CommandArgs{};
-    
-    QStringList parts = s.remove(0,1).split(' ');
-    QStringList r;
-    for (int i=1; i<parts.count(); ++i)
-        r << munge(parts[i]);
-                   
-    return {munge(parts[0]), r};
 }
 
 void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)

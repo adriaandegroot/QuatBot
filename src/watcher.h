@@ -8,6 +8,9 @@
 #ifndef QUATBOT_WATCHER_H
 #define QUATBOT_WATCHER_H
 
+#include <QString>
+#include <QStringList>
+
 namespace QMatrixClient
 {
     class Room;
@@ -18,6 +21,12 @@ namespace QuatBot
 {
 class Bot;
 
+struct CommandArgs
+{
+    QString command;
+    QStringList args;
+};
+    
 class Watcher
 {
 public:
@@ -26,6 +35,9 @@ public:
     
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
     
+    static bool isCommand(const QString& s);
+    CommandArgs extractCommand(QString);  // Copied because it's modified in the method
+
 protected:
     Bot* m_bot;
 };
