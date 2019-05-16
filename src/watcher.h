@@ -36,8 +36,11 @@ public:
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
     
     static bool isCommand(const QString& s);
+    static bool isCommand(const QMatrixClient::RoomMessageEvent*);
+    
     CommandArgs extractCommand(QString);  // Copied because it's modified in the method
-
+    CommandArgs extractCommand(const QMatrixClient::RoomMessageEvent*);
+    
 protected:
     Bot* m_bot;
 };

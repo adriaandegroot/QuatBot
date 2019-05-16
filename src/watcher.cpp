@@ -7,9 +7,11 @@
 
 #include "watcher.h"
 
+#include <room.h>
+
 namespace QuatBot
 {
-static constexpr const QChar COMMAND_PREFIX(0x1575); // ᕵ Nunavik Hi
+static constexpr const QChar COMMAND_PREFIX('!'); // 0x1575); // ᕵ Nunavik Hi
 
 Watcher::Watcher(QuatBot::Bot* parent) :
     m_bot(parent)
@@ -42,6 +44,17 @@ CommandArgs Watcher::extractCommand(QString s)
 bool Watcher::isCommand(const QString& s)
 {
     return s.startsWith(COMMAND_PREFIX);
+}
+
+bool Watcher::isCommand(const QMatrixClient::RoomMessageEvent* e)
+{
+    // There must be a faster way, by looking at raw data
+    return isCommand(e->plainBody());
+}
+
+CommandArgs Watcher::extractCommand(const QMatrixClient::RoomMessageEvent* e)
+{
+    return extractCommand(e->plainBody());
 }
 
 
