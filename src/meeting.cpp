@@ -53,6 +53,7 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
         if (m_state == State::None)
         {
             m_state = State::RollCall;
+            m_breakouts.clear();
             m_participantsDone.clear();
             m_participants.clear();
             m_participants.append(cmd.user);
@@ -123,6 +124,18 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             }
         }
     }
+    else if (cmd.command == QStringLiteral("breakout"))
+    {
+        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        {
+            shortStatus(room);
+        }
+        else
+        {
+            m_breakouts.append(cmd.args.join(' '));
+            message(room, QString("Registered breakout '%1'.").arg(m_breakouts.last()));
+        }
+    }
     else
     {
         message(room, QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
@@ -140,6 +153,13 @@ void Meeting::doNext(QMatrixClient::Room* room)
     {
         m_state = State::None;
         shortStatus(room);
+        if (m_breakouts.count() > 0)
+        {
+            for(const auto& b : m_breakouts)
+            {
+                message(room, QString("Breakout: %1").arg(b));
+            }
+        }
         return;
     }
     

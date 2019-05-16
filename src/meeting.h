@@ -44,6 +44,7 @@ private:
     State m_state;
     QList<QString> m_participants;
     QSet<QString> m_participantsDone;
+    QList<QString> m_breakouts;
     QString m_chair;
 } ;
 
