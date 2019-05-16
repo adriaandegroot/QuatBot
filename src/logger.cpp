@@ -102,13 +102,44 @@ void Logger::Private::open(const QString& name)
     m_lines = 0;
 }
 
+// make copies because we'll be modifying them
+static void logX(QTextStream& s, QString timestamp, QString sender, QString message)
+{
+    timestamp.truncate(19);
+    if (sender.contains(':'))
+        sender.truncate(sender.indexOf(':'));
+    sender.truncate(12);
+    
+    // Just the HH:mm:ss
+    s << timestamp.right(8).leftJustified(8)
+        << ' ' << qSetFieldWidth(12) << sender << qSetFieldWidth(-1) << '\t';
+    if (message.contains('\n'))
+    {
+        QStringList parts = message.split('\n');
+        bool first = true;
+        for (const auto& p : parts)
+        {
+            if (!first)
+            {
+                // 8, space, 12, tab
+                s << "        " << ' ' << "            " << '\t'; 
+            }
+            first = false;
+            s << p << '\n';
+        }
+    }
+    else
+    {
+        s << message << '\n';
+    }
+}
+
 void Logger::Private::log(const QString& s)
 {
     if (m_stream)
     {
         ++m_lines;
-        (*m_stream) << qSetFieldWidth(6) << m_lines << qSetFieldWidth(-1)
-            << "\t\t\t\t\t" << s << '\n';
+        logX(*m_stream, QString(), QString(), s);
     }
 }
 
@@ -117,11 +148,7 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
     if (m_stream)
     {
         ++m_lines;
-        (*m_stream) << qSetFieldWidth(6) << m_lines << qSetFieldWidth(-1)
-            << '\t' << message->timestamp().toString(Qt::DateFormat::ISODate)
-            << '\t' << message->senderId()
-            << '\t' << message->plainBody()
-            << '\n';
+        logX(*m_stream, message->timestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
     }
 }
 
