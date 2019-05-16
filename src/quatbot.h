@@ -10,6 +10,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 namespace QMatrixClient
 {
@@ -19,7 +20,7 @@ namespace QMatrixClient
 
 namespace QuatBot
 {
-class BasicCommands;
+class Watcher;
 
 class Bot : public QObject
 {
@@ -35,9 +36,10 @@ protected:
     
 private:
     QMatrixClient::Room* m_room = nullptr;
-    BasicCommands* m_commands = nullptr;
-    
     QMatrixClient::Connection& m_conn;
+    
+    QVector<Watcher*> m_watchers;
+    
     QString m_roomName;
     bool m_newlyConnected = true;
 };

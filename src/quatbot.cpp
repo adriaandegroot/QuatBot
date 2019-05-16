@@ -51,7 +51,8 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
     connect(joinRoom, &QMatrixClient::BaseJob::success,
         [this, joinRoom]()
         {
-            m_commands = new BasicCommands( COMMAND_PREFIX, this );
+            m_watchers.reserve(1);
+            m_watchers.append(new BasicCommands(COMMAND_PREFIX, this));
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
@@ -65,7 +66,7 @@ Bot::~Bot()
 {
     if(m_room)
         m_room->leaveRoom();
-    delete m_commands;
+    qDeleteAll(m_watchers);
 }
     
 void Bot::baseStateLoaded()
@@ -93,7 +94,8 @@ void Bot::addedMessages(int from, int to)
         const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
         if (event)
         {
-            m_commands->handleMessage(m_room, event);
+            for(const auto& w : m_watchers)
+                w->handleMessage(m_room, event);
         }
     }
     m_room->markMessagesAsRead(timeline[to]->id());
