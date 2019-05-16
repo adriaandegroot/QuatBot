@@ -57,15 +57,25 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
     {
         if (m_bot->checkOps(l, room))
         {
-            if (l.args.count() == 1) 
+            if (l.args.count() > 0) 
             {
-                if (m_bot->setOps(l.args.first(), true))
+                for (const auto& u : l.args)
                 {
-                    message(room, QString("%1 is now an operator").arg(l.args.first()));
-                }
-                else
-                {
-                    message(room, QString("%1 failed.").arg(displayCommand("op")));
+                    if (u.trimmed().isEmpty())
+                    {
+                        // Skip silently
+                        continue;
+                    }
+                    
+                    QString user = u.trimmed();
+                    if (m_bot->setOps(user, true))
+                    {
+                        message(room, QString("%1 is now an operator").arg(user));
+                    }
+                    else
+                    {
+                        message(room, QString("%1 failed.").arg(displayCommand("op")));
+                    }
                 }
             }
             else
@@ -82,15 +92,25 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
     {
         if (m_bot->checkOps(l, room))
         {
-            if (l.args.count() == 1) 
+            if (l.args.count() > 0) 
             {
-                if (m_bot->setOps(l.args.first(), false))
+                for (const auto& u : l.args)
                 {
-                    message(room, QString("%1 is no longer an operator").arg(l.args.first()));
-                }
-                else
-                {
-                    message(room, QString("%1 failed.").arg(displayCommand("deop")));
+                    if (u.trimmed().isEmpty())
+                    {
+                        // Skip silently
+                        continue;
+                    }
+                    
+                    QString user = u.trimmed();
+                    if (m_bot->setOps(user, false))
+                    {
+                        message(room, QString("%1 is no longer an operator").arg(user));
+                    }
+                    else
+                    {
+                        message(room, QString("%1 failed.").arg(displayCommand("deop")));
+                    }
                 }
             }
             else
