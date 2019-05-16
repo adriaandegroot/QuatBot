@@ -24,11 +24,6 @@ namespace QuatBot
 class CommandArgs;
 class Watcher;
 
-/// @brief Sends a message to the given @p room
-void message(QMatrixClient::Room* room, const QStringList& l);
-/// @brief Sends a message to the given @p room
-void message(QMatrixClient::Room* room, const QString& s);
-
 /// @brief Looks up a Matrix Id from a userName (possibly a nickname)
 QString userLookup(QMatrixClient::Room* room, const QString& userName);
 /// @brief All the user ids from the room
@@ -49,6 +44,11 @@ public:
     bool checkOps(const CommandArgs& cmd);
     /// @brief is the @p cmd issued by an operator? Warning message if not.
     bool checkOps(const CommandArgs& cmd, QMatrixClient::Room* room);
+
+    /// @brief Sends a message to the given @p room
+    void message(const QStringList& l);
+    /// @brief Sends a message to the given @p room
+    void message(const QString& s);
     
 protected:
     void baseStateLoaded();

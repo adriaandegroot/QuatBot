@@ -27,17 +27,6 @@
 
 namespace QuatBot
 {
-void message(QMatrixClient::Room* room, const QStringList& l)
-{
-    message(room, l.join(' '));
-}
-
-void message(QMatrixClient::Room* room, const QString& s)
-{
-    room->postPlainText(s);
-    qDebug() << "**BOT**" << s;
-}
-
 QString userLookup(QMatrixClient::Room* room, const QString& userName)
 {
     QString n = userName.trimmed();
@@ -206,5 +195,21 @@ bool Bot::checkOps(const QuatBot::CommandArgs& cmd, QMatrixClient::Room* room)
     message(room, "Only operators can do that.");
     return false;
 }
+
+void Bot::message(const QStringList& l)
+{
+    if (!m_room)
+        return;
+    message(l.join(' '));
+}
+
+void Bot::message(const QString& s)
+{
+    if (!m_room)
+        return;
+    m_room->postPlainText(s);
+    qDebug() << "**BOT**" << s;
+}
+
 
 }  // namespace
