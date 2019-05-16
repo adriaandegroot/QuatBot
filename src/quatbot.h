@@ -52,6 +52,9 @@ public:
     /// @brief Sends a message to the given @p room
     void message(const QString& s);
     
+    /// @brief Get the watcher with the given @p name
+    Watcher* getWatcher(const QString& name);
+    
 protected:
     void baseStateLoaded();
     

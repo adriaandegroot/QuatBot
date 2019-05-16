@@ -52,6 +52,20 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     {
         if (m_state == State::None)
         {
+            if (m_bot->checkOps(cmd, Bot::Silent{}))
+            {
+                Watcher* w = m_bot->getWatcher("log");
+                if (w)
+                {
+                    CommandArgs logCommand(cmd);
+                    int year = 0;
+                    int week = QDate::currentDate().weekNumber(&year);
+                    logCommand.id = QString("notes-%1-%2").arg(year).arg(week);
+                    logCommand.command = QStringLiteral("log");
+                    logCommand.args = QStringList{"on"};
+                    w->handleCommand(logCommand);
+                }
+            }
             m_state = State::RollCall;
             m_breakouts.clear();
             m_participantsDone.clear();

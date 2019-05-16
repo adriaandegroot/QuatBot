@@ -218,5 +218,12 @@ void Bot::message(const QString& s)
     qDebug() << "**BOT**" << s;
 }
 
+Watcher* Bot::getWatcher(const QString& name)
+{
+    for (const auto& w : m_watchers)
+        if (w->moduleName() == name)
+            return w;
+    return nullptr;
+}
 
 }  // namespace
