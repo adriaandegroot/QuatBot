@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
+#include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QNetworkReply>
@@ -29,6 +30,23 @@
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
+    app.setApplicationName("QuatBot");
+    app.setApplicationVersion("0.8");
+    
+    QCommandLineOption userOption( QStringList{"u", "user"},
+        "User to use to connect.", "user");
+    QCommandLineOption passOption( QStringList{"p", "password"},
+        "Password to use to connect (will prompt if unset).", "password");
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Chatbot for meeting-management on Matrix");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOption(userOption);
+    parser.addOption(passOption);
+    parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
+    parser.process(app);
+
+    
     if (argc < 4)
     {
         qWarning() << "Usage: quatbot <user> <pass> <room..>\n"
@@ -46,8 +64,8 @@ int main(int argc, char** argv)
     );
 
     QMatrixClient::Connection conn;
-    conn.connectToServer(argv[1], 
-        (argv[2][0]=='-' && !argv[2][1]) ? getpass("Matrix password") : argv[2], 
+    conn.connectToServer(parser.value(userOption), 
+        parser.isSet(passOption) ? parser.value(passOption) : QString(getpass("Matrix password: ")), 
         "quatbot");  // user pass device
     
     QObject::connect(&conn,
@@ -57,10 +75,10 @@ int main(int argc, char** argv)
             qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
             conn.setLazyLoading(true);
             conn.syncLoop();
-            for (int r=3; r < argc; ++r)
+            for (const auto& r: parser.positionalArguments())
             {
                 // Unused, gets cleaned up by itself
-                QuatBot::Bot* bot = new QuatBot::Bot(conn, argv[r]);
+                QuatBot::Bot* bot = new QuatBot::Bot(conn, r);
             }
         }
     );
