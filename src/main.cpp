@@ -7,6 +7,10 @@
 
 #include "quatbot.h"
 
+// For password-prompt
+#include <pwd.h>
+#include <unistd.h>
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QNetworkReply>
@@ -25,9 +29,11 @@
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    if (argc != 4)
+    if (argc < 4)
     {
-        qWarning() << "Usage: quatbot <user> <pass> <room>";
+        qWarning() << "Usage: quatbot <user> <pass> <room..>\n"
+            "  Give at least one room name.\n"
+            "  Use - as a password to prompt for it.";
         return 1;
     }
 
@@ -40,16 +46,22 @@ int main(int argc, char** argv)
     );
 
     QMatrixClient::Connection conn;
-    conn.connectToServer(argv[1], argv[2], "quatbot");  // user pass device
+    conn.connectToServer(argv[1], 
+        (argv[2][0]=='-' && !argv[2][1]) ? getpass("Matrix password") : argv[2], 
+        "quatbot");  // user pass device
     
     QObject::connect(&conn,
         &QMatrixClient::Connection::connected,
         [&]()
         {
-            qDebug() << "Connected to" << conn.homeserver();
+            qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
             conn.setLazyLoading(true);
             conn.syncLoop();
-            QuatBot::Bot* bot = new QuatBot::Bot(conn, argv[3]);
+            for (int r=3; r < argc; ++r)
+            {
+                // Unused, gets cleaned up by itself
+                QuatBot::Bot* bot = new QuatBot::Bot(conn, argv[r]);
+            }
         }
     );
     QObject::connect(&conn,

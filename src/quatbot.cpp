@@ -74,7 +74,6 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         return;
     }
         
-    qDebug() << "Using home=" << conn.homeserver() << "user=" << conn.userId();
     auto* joinRoom = conn.joinRoom(roomName);
     
     connect(joinRoom, &QMatrixClient::BaseJob::failure,
