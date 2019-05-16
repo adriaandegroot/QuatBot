@@ -257,7 +257,7 @@ void Meeting::timeout()
         
         for (const auto& u : m_bot->userIds())
         {
-            if (!m_participants.contains(u))
+            if (!m_participants.contains(u) && !m_participantsDone.contains(u))
             {
                 noResponse.append(u);
             }
