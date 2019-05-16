@@ -164,6 +164,9 @@ bool Bot::setOps(const QString& user, bool op)
     }
     else if (m_operators.count() > 1)
     {
+        // Can't deop the bot itself
+        if (user == m_conn.userId())
+            return false;
         if (m_operators.contains(user))
         {
             m_operators.remove(user);
