@@ -12,6 +12,7 @@
 #include <room.h>
 
 #include <QProcess>
+#include <QTimer>
 
 namespace QuatBot
 {
@@ -118,7 +119,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
     {
         if (m_bot->checkOps(l))
         {
-            m_bot->deleteLater();
+            QTimer::singleShot(1000, m_bot, &QObject::deleteLater);
             message(QString("Goodbye (bot operation terminated)!"));
         }
     }

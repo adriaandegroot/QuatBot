@@ -61,12 +61,14 @@ QStringList Bot::userIds()
     return l;
 }
 
+static int instance_count = 0;
 
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops) :
         QObject(),
         m_conn(conn),
         m_roomName(roomName)
 {
+    instance_count++;
     if (conn.homeserver().isEmpty() || !conn.homeserver().isValid())
     {
         qWarning() << "Connection is invalid.";
@@ -110,6 +112,12 @@ Bot::~Bot()
     if(m_room)
         m_room->leaveRoom();
     qDeleteAll(m_watchers);
+    
+    instance_count--;
+    if (instance_count<1)
+    {
+        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+    }
 }
     
 void Bot::baseStateLoaded()
