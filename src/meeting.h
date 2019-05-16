@@ -12,6 +12,7 @@
 
 #include <QList>
 #include <QSet>
+#include <QTimer>
 
 namespace QuatBot
 {
@@ -41,12 +42,18 @@ protected:
     void enableLogging(const CommandArgs&, bool);
     void doNext();
     
+    /// @brief Called by timer, when someone is not responding.
+    void timeout();
+    
 private:
     State m_state;
     QList<QString> m_participants;
     QSet<QString> m_participantsDone;
     QList<QString> m_breakouts;
     QString m_chair;
+    QString m_current;
+    QTimer m_waiting;
+    bool m_currentSeen;
 } ;
 
 }  // namespace

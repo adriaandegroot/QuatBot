@@ -18,6 +18,8 @@ Meeting::Meeting(Bot* bot) :
     Watcher(bot),
     m_state(State::None)
 {
+    QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
+    m_waiting.setSingleShot(true);
 }
     
 Meeting::~Meeting()
@@ -40,6 +42,10 @@ void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
         m_participants.removeAll(m_chair);
         m_participants.append(m_chair);
     }
+    if ((m_state == State::InProgress ) && (e->senderId() == m_current))
+    {
+        m_waiting.stop();
+    }
 }
 
 void Meeting::handleCommand(const CommandArgs& cmd)
@@ -59,8 +65,10 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             m_participants.clear();
             m_participants.append(cmd.user);
             m_chair = cmd.user;
+            m_current.clear();
             shortStatus();
             message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
+            m_waiting.start(60000);  // one minute until reminder
         }
         else
         {
@@ -165,20 +173,22 @@ void Meeting::doNext()
                 message(QString("Breakout: %1").arg(b));
             }
         }
+        m_waiting.stop();
         return;
     }
     
-    QString onDeck = m_participants.takeFirst();
-    m_participantsDone.insert(onDeck);
+    m_current = m_participants.takeFirst();
+    m_participantsDone.insert(m_current);
     
     if (m_participants.count() > 0)
     {
-        message(QString("%1, you're up (after that, %2).").arg(onDeck, m_participants.first()));
+        message(QString("%1, you're up (after that, %2).").arg(m_current, m_participants.first()));
     }
     else
     {
-        message(QString("%1, you're up (after that, we're done!).").arg(onDeck));
+        message(QString("%1, you're up (after that, we're done!).").arg(m_current));
     }
+    m_waiting.start(30000); // half a minute to reminder
 }
 
 void Meeting::shortStatus() const
@@ -226,6 +236,32 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
             logCommand.args = QStringList{};
             w->handleCommand(logCommand);
         }
+    }
+}
+
+
+void Meeting::timeout()
+{
+    if (m_state == State::RollCall)
+    {
+        QStringList noResponse{"Roll-call for"};
+        
+        for (const auto& u : m_bot->userIds())
+        {
+            if (!m_participants.contains(u))
+            {
+                noResponse.append(u);
+            }
+        }
+        
+        if (noResponse.count() > 1)
+        {
+            message(noResponse);
+        }
+    }
+    else if (m_state == State::InProgress)
+    {
+        message(QStringList{m_current, "are you with us?"});
     }
 }
 
