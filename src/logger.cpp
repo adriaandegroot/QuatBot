@@ -104,10 +104,11 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
     if (m_stream)
     {
         ++m_lines;
-        (*m_stream) << qSetFieldWidth(6) << m_lines
-            << message->timestamp().toString(Qt::DateFormat::ISODate)
-            << message->senderId()
-            << message->plainBody();
+        (*m_stream) << qSetFieldWidth(6) << m_lines << qSetFieldWidth(-1)
+            << '\t' << message->timestamp().toString(Qt::DateFormat::ISODate)
+            << '\t' << message->senderId()
+            << '\t' << message->plainBody()
+            << '\n';
     }
 }
 
