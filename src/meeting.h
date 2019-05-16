@@ -10,6 +10,9 @@
 
 #include "watcher.h"
 
+#include <QList>
+#include <QSet>
+
 namespace QuatBot
 {
 /// @brief Run a meeting with ~meeting commands.
@@ -23,9 +26,25 @@ public:
     
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(QMatrixClient::Room* room, const CommandArgs&) override;
+   
+    enum class State
+    {
+        None,
+        RollCall,
+        InProgress
+    } ;
     
 protected:
-    void status(QMatrixClient::Room*);
+    void shortStatus(QMatrixClient::Room*) const;
+    void status(QMatrixClient::Room*) const;
+    
+    void doNext(QMatrixClient::Room*);
+    
+private:
+    State m_state;
+    QList<QString> m_participants;
+    QSet<QString> m_participantsDone;
+    QString m_chair;
 } ;
 
 }  // namespace
