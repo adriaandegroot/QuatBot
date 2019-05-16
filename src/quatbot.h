@@ -24,8 +24,13 @@ namespace QuatBot
 class CommandArgs;
 class Watcher;
 
+/// @brief Sends a message to the given @p room
 void message(QMatrixClient::Room* room, const QStringList& l);
+/// @brief Sends a message to the given @p room
 void message(QMatrixClient::Room* room, const QString& s);
+
+/// @brief Looks up a Matrix Id from a userName (possibly a nickname)
+QString userLookup(QMatrixClient::Room* room, const QString& userName);
 
 class Bot : public QObject
 {

@@ -61,13 +61,11 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
             {
                 for (const auto& u : l.args)
                 {
-                    if (u.trimmed().isEmpty())
+                    QString user = userLookup(room, u);
+                    if (user.isEmpty())
                     {
-                        // Skip silently
                         continue;
                     }
-                    
-                    QString user = u.trimmed();
                     if (m_bot->setOps(user, true))
                     {
                         message(room, QString("%1 is now an operator").arg(user));
@@ -96,13 +94,11 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
             {
                 for (const auto& u : l.args)
                 {
-                    if (u.trimmed().isEmpty())
+                    QString user = userLookup(room, u);
+                    if (user.isEmpty())
                     {
-                        // Skip silently
                         continue;
                     }
-                    
-                    QString user = u.trimmed();
                     if (m_bot->setOps(user, false))
                     {
                         message(room, QString("%1 is no longer an operator").arg(user));

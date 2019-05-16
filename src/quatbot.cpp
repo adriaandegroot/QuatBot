@@ -16,6 +16,7 @@
 #include <connection.h>
 #include <networkaccessmanager.h>
 #include <room.h>
+#include <user.h>
 
 #include <csapi/joining.h>
 #include <events/roommessageevent.h>
@@ -36,6 +37,23 @@ void message(QMatrixClient::Room* room, const QString& s)
     qDebug() << "**BOT**" << s;
 }
 
+QString userLookup(QMatrixClient::Room* room, const QString& userName)
+{
+    QString n = userName.trimmed();
+    if (n.isEmpty())
+        return QString();
+    
+    if (n.startsWith('@') && n.contains(':'))
+        return n;
+    
+    for (const auto& u : room->users())
+    {
+        if (n == u->displayname(room))
+            return u->id();
+    }
+    
+    return QString();
+}
 
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         QObject(),
@@ -114,6 +132,8 @@ void Bot::addedMessages(int from, int to)
             CommandArgs cmd(event);
             if (cmd.isValid())
             {
+                qDebug() << "Made command" << cmd.command << cmd.args;
+                qDebug() << ".. from message" << event->plainBody();
                 bool handled = false;
                 for(const auto& w : m_watchers)
                 {
