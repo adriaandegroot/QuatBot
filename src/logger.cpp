@@ -125,6 +125,24 @@ Logger::~Logger()
 void Logger::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
 {
     d->log(event);
+    if (isCommand(event))
+        handleCommand(room, event);
+}
+
+void Logger::handleCommand(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
+{
+    auto cmd = extractCommand(event);
+    if (cmd.command == "log")
+    {
+        if (cmd.args.count() < 1)
+        {
+            // Send help?
+        }
+        else if (cmd.args.first() == "on")
+            d->open(event->id());
+        else if (cmd.args.first() == "off")
+            d->close();
+    }
 }
 
 }

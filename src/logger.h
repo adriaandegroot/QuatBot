@@ -27,6 +27,8 @@ public:
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) override;
     
 private:
+    void handleCommand(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*);
+    
     Private* d;
 };
     
