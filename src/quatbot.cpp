@@ -56,6 +56,18 @@ QString userLookup(QMatrixClient::Room* room, const QString& userName)
     return QString();
 }
 
+QStringList userIds(QMatrixClient::Room* room)
+{
+    QStringList l;
+
+    for (const auto& u : room->users())
+    {
+        l << u->id();
+    }
+    return l;
+}
+
+
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         QObject(),
         m_conn(conn),

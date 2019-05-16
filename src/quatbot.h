@@ -31,6 +31,8 @@ void message(QMatrixClient::Room* room, const QString& s);
 
 /// @brief Looks up a Matrix Id from a userName (possibly a nickname)
 QString userLookup(QMatrixClient::Room* room, const QString& userName);
+/// @brief All the user ids from the room
+QStringList userIds(QMatrixClient::Room* room);
 
 class Bot : public QObject
 {
