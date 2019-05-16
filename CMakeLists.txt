@@ -20,6 +20,7 @@ add_executable(quatbot
     src/main.cpp
     src/command.cpp
     src/logger.cpp
+    src/meeting.cpp
     src/quatbot.cpp
     src/watcher.cpp
 )
