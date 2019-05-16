@@ -21,6 +21,7 @@
 #include <events/roommessageevent.h>
 
 #include "command.h"
+#include "logger.h"
 
 namespace QuatBot
 {
@@ -49,8 +50,9 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
     connect(joinRoom, &QMatrixClient::BaseJob::success,
         [this, joinRoom]()
         {
-            m_watchers.reserve(1);
+            m_watchers.reserve(2);
             m_watchers.append(new BasicCommands(this));
+            m_watchers.append(new Logger(this));
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);

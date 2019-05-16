@@ -19,6 +19,7 @@ find_package(QMatrixClient REQUIRED)
 add_executable(quatbot
     src/main.cpp
     src/command.cpp
+    src/logger.cpp
     src/quatbot.cpp
     src/watcher.cpp
 )
