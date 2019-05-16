@@ -82,9 +82,50 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             doNext(room);
         }
     }
+    else if (cmd.command == QStringLiteral("skip"))
+    {
+        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        {
+            shortStatus(room);
+        }
+        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd, room))
+        {
+            for (const auto& u : cmd.args)
+            {
+                QString user = userLookup(room, u);
+                if (!user.isEmpty())
+                {
+                    m_participants.removeAll(user);
+                    m_participantsDone.insert(user);
+                    message(room, QString("User %1 will be skipped this meeting.").arg(user));
+                }
+            }
+        }
+    }
+    else if (cmd.command == QStringLiteral("bump"))
+    {
+        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        {
+            shortStatus(room);
+        }
+        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd, room))
+        {
+            for (const auto& u : cmd.args)
+            {
+                QString user = userLookup(room, u);
+                if (!user.isEmpty())
+                {
+                    m_participants.removeAll(user);
+                    m_participantsDone.remove(user);
+                    m_participants.insert(0, user);
+                    message(room, QString("User %1 is up next.").arg(user));
+                }
+            }
+        }
+    }
     else
     {
-        message(room, QString("Usage: %1 <status|rollcall|next>").arg(displayCommand()));
+        message(room, QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
     }
 }
 
