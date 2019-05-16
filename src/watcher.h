@@ -88,7 +88,7 @@ public:
      */
     virtual QString moduleName() const = 0;
     
-    virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
+    virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) = 0;
     virtual void handleCommand(QMatrixClient::Room*, const CommandArgs&) = 0;
 
 protected:

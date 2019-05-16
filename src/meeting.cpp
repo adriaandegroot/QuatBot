@@ -29,7 +29,7 @@ QString Meeting::moduleName() const
     return QStringLiteral("meeting");
 }
 
-void Meeting::handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent* e)
+void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
 {
     // New speaker?
     if ((m_state != State::None) && !m_participantsDone.contains(e->senderId()) && !m_participants.contains(e->senderId()))

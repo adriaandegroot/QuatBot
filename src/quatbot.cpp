@@ -130,7 +130,7 @@ void Bot::addedMessages(int from, int to)
         if (event)
         {
             for(const auto& w : m_watchers)
-                w->handleMessage(m_room, event);
+                w->handleMessage(event);
             
             CommandArgs cmd(event);
             if (cmd.isValid())

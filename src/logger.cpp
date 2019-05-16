@@ -155,7 +155,7 @@ QString Logger::moduleName() const
     return QStringLiteral("log");
 }
 
-void Logger::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
+void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 {
     d->log(event);
 }

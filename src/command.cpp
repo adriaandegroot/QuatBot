@@ -118,7 +118,7 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
         message(QString("I don't understand '%1'.").arg(l.command));
 }
 
-void QuatBot::BasicCommands::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
+void QuatBot::BasicCommands::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 {
 }
 

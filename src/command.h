@@ -20,7 +20,7 @@ public:
 
     virtual QString moduleName() const override;
     
-    virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) override;
+    virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(QMatrixClient::Room* room, const CommandArgs&) override;
 };
     
