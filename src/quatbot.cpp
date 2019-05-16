@@ -107,8 +107,16 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
-            connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
-            connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
+            if (!m_room)
+            {
+                qDebug() << ".. pending invite, giving up already.";
+                bailOut();
+            }
+            else
+            {
+                connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
+                connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
+            }
         }
     );
     
@@ -147,7 +155,7 @@ void Bot::addedMessages(int from, int to)
     if (m_newlyConnected)
     {
         qDebug() << ".. Ignoring them";
-        m_room->markMessagesAsRead(m_room->readMarker()->event()->id());
+        m_room->markMessagesAsRead(m_room->readMarkerEventId());
         return;
     }
     
