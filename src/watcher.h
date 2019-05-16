@@ -69,12 +69,30 @@ struct CommandArgs
      */
     bool pop();
     
-    QString id;  // event Id, if available
-    QString user;  // user Id, if available
+    QString id;  ///< event Id, if available.
+    QString user;  ///< user Id, if available. Used for access-control (ops)
     QString command;
     QStringList args;
 };
     
+/** @brief Base class for handlers of a certain class of commands
+ * 
+ * A *Watcher* watches incoming messages and processes each text
+ * message as it arrives (see handleMessage()). Some messages are
+ * also commands, and handleCommand() is called with the parsed-out
+ * command **after** the message is handled normally.
+ * 
+ * Watchers should not handle commands embedded in messages from
+ * the body of handleMessage() .. the Bot framework does the work
+ * there. Within the bot framework some "virtual" messages are
+ * generated (e.g. bot responses as they are sent); these have their 
+ * own handleMessage() method, which is usually a do-nothing method.
+ * 
+ * A Watcher has a name (an id, really) which identifies which class
+ * of commands it handles. The Watcher with name "log" responds to
+ * commands that start "~log" and processes those. One special
+ * subclass of Watcher handles "the rest".
+ */
 class Watcher
 {
 public:
@@ -88,19 +106,32 @@ public:
      */
     virtual QString moduleName() const = 0;
     
-    /// @brief Handle "virtual" message sent by the bot
+    /** @brief Handle "virtual" message sent by the bot
+     * 
+     * The default implementation does nothing.
+     */
     virtual void handleMessage(const QString&);
     /// @brief Handle message from the Matrix server
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) = 0;
-    /// @brief Called **after** handleMessage() for those containing a command
+    /** @brief Called **after** handleMessage() for those containing a command.
+     * 
+     * If the watcher has a name (e.g. "log") then it responds to commands
+     * that start with ~log (again, assuming the default command-character).
+     * The command that arrives here is has already had that "prefix-command"
+     * removed, so that the watcher only needs to handle the **sub**-commands
+     * that it supports (e.g. "~log on", "~log off" ..).
+     */
     virtual void handleCommand(const CommandArgs&) = 0;
 
 protected:
     /// @brief human-readable version of the-command-for @p s with command-prefix
     QString displayCommand(const QString& s);
+    /// @brief human-readable version of the-command-for-this-watcher
     QString displayCommand() { return displayCommand(this->moduleName()); }
 
+    /// @brief Convenience for sending a message to the room
     void message(const QString& s) const { m_bot->message(s); }
+    /// @brief Convenience for sending a message to the room
     void message(const QStringList& l) const { m_bot->message(l); }
     
     Bot* m_bot;
