@@ -96,6 +96,26 @@ void Bot::addedMessages(int from, int to)
         {
             for(const auto& w : m_watchers)
                 w->handleMessage(m_room, event);
+            
+            CommandArgs cmd(event);
+            if (cmd.isValid())
+            {
+                bool handled = false;
+                for(const auto& w : m_watchers)
+                {
+                    if (w->moduleName() == cmd.command)
+                    {
+                        cmd.pop();
+                        w->handleCommand(m_room, cmd);
+                        handled = true;
+                        break;
+                    }
+                }
+                // Special case: unhandled ones go to BasicCommands
+                // which handles all the "rest" items.
+                if (!handled)
+                    m_watchers[0]->handleCommand(m_room, cmd);
+            }
         }
     }
     m_room->markMessagesAsRead(timeline[to]->id());

@@ -53,9 +53,6 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
 
 void QuatBot::BasicCommands::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
 {
-    QString message = event->plainBody();
-    if (isCommand(message))
-        handleCommand(room, CommandArgs(message));
 }
 
 }
