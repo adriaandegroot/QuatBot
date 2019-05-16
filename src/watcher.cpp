@@ -36,6 +36,7 @@ CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e) :
     CommandArgs(e->plainBody())
 {
     id = e->id();
+    user = e->senderId();
 }
 
 

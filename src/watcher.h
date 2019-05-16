@@ -45,6 +45,7 @@ struct CommandArgs
     bool pop();
     
     QString id;  // event Id, if available
+    QString user;  // user Id, if available
     QString command;
     QStringList args;
 };

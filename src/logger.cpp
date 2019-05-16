@@ -7,6 +7,8 @@
 
 #include "logger.h"
 
+#include "quatbot.h"
+
 #include <room.h>
 
 #include <QFile>
@@ -167,11 +169,23 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
         statusReport = false;
     }
     else if (cmd.command == "on")
-        d->open(cmd.id);
+    {
+        if (m_bot->checkOps(cmd, room))
+        {
+            d->open(cmd.id);
+        }
+    }
     else if (cmd.command == "off")
-        d->close();
+    {
+        if (m_bot->checkOps(cmd, room))
+        {
+            d->close();
+        }
+    }
     else if (cmd.command == "status")
+    {
         ;  // Nothing, the status report is the side-effect
+    }
     else
     {
         message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand()));
@@ -179,7 +193,9 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     }
     
     if (statusReport)
+    {
         d->report(room);
+    }
 }
 
 }

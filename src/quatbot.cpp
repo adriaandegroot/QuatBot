@@ -60,6 +60,8 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
             connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
         }
     );
+    
+    setOps(conn.userId(), true);
 }
     
 Bot::~Bot()
@@ -119,6 +121,43 @@ void Bot::addedMessages(int from, int to)
         }
     }
     m_room->markMessagesAsRead(timeline[to]->id());
+}
+
+bool Bot::setOps(const QString& user, bool op)
+{
+    if (op)
+    {
+        m_operators.insert(user);
+        return true;
+    }
+    else if (m_operators.count() > 1)
+    {
+        if (m_operators.contains(user))
+        {
+            m_operators.remove(user);
+            return true;
+        }
+        return false;  // Wasn't removed
+    }
+    else return false;  // Can't remove last op
+}
+
+bool Bot::checkOps(const QString& user)
+{
+    return !user.isEmpty() && m_operators.contains(user);
+}
+
+bool Bot::checkOps(const QuatBot::CommandArgs& cmd)
+{
+    return checkOps(cmd.user);
+}
+
+bool Bot::checkOps(const QuatBot::CommandArgs& cmd, QMatrixClient::Room* room)
+{
+    if (checkOps(cmd))
+        return true;
+    Watcher::message(room, "Only operators can do that.");
+    return false;
 }
 
 }  // namespace
