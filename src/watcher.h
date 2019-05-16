@@ -8,6 +8,8 @@
 #ifndef QUATBOT_WATCHER_H
 #define QUATBOT_WATCHER_H
 
+#include "quatbot.h"
+
 #include <QString>
 #include <QStringList>
 
@@ -19,8 +21,6 @@ namespace QMatrixClient
 
 namespace QuatBot
 {
-class Bot;
-
 /** @brief A command, with 0 or more arguments.
  * 
  * Commands have a **primary** command, and zero or more arguments.
@@ -95,6 +95,9 @@ protected:
     /// @brief human-readable version of the-command-for @p s with command-prefix
     QString displayCommand(const QString& s);
     QString displayCommand() { return displayCommand(this->moduleName()); }
+
+    void message(const QString& s) const { m_bot->message(s); }
+    void message(const QStringList& l) const { m_bot->message(l); }
     
     Bot* m_bot;
 };
