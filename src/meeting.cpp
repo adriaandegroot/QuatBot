@@ -52,20 +52,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     {
         if (m_state == State::None)
         {
-            if (m_bot->checkOps(cmd, Bot::Silent{}))
-            {
-                Watcher* w = m_bot->getWatcher("log");
-                if (w)
-                {
-                    CommandArgs logCommand(cmd);
-                    int year = 0;
-                    int week = QDate::currentDate().weekNumber(&year);
-                    logCommand.id = QString("notes-%1-%2").arg(year).arg(week);
-                    logCommand.command = QStringLiteral("log");
-                    logCommand.args = QStringList{"on"};
-                    w->handleCommand(logCommand);
-                }
-            }
+            enableLogging(cmd, true);
             m_state = State::RollCall;
             m_breakouts.clear();
             m_participantsDone.clear();
@@ -95,6 +82,10 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 m_participantsDone.clear();
             }
             doNext();
+            if (m_state == State::None)
+            {
+                enableLogging(cmd, false);
+            }
         }
     }
     else if (cmd.command == QStringLiteral("skip"))
@@ -213,6 +204,28 @@ void Meeting::status() const
     if (m_state != State::None)
     {
         message(QString("There are %1 participants.").arg(m_participants.count()));
+    }
+}
+
+void Meeting::enableLogging(const CommandArgs& cmd, bool b)
+{
+    if (m_bot->checkOps(cmd, Bot::Silent{}))
+    {
+        Watcher* w = m_bot->getWatcher("log");
+        if (w)
+        {
+            // Pass a command to the log watcher, with the same (ops!)
+            // user id, but a fake id so that the log file gets a
+            // sensible name. Remember that the named watchers expect
+            // a subcommand, not their main command.
+            CommandArgs logCommand(cmd);
+            int year = 0;
+            int week = QDate::currentDate().weekNumber(&year);
+            logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
+            logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
+            logCommand.args = QStringList{};
+            w->handleCommand(logCommand);
+        }
     }
 }
 

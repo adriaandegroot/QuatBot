@@ -38,6 +38,7 @@ protected:
     void shortStatus() const;
     void status() const;
     
+    void enableLogging(const CommandArgs&, bool);
     void doNext();
     
 private:
