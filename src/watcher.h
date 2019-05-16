@@ -23,6 +23,12 @@ class Bot;
 
 struct CommandArgs
 {
+    explicit CommandArgs(QString);   // Copied because it's modified in the method
+    explicit CommandArgs(const QMatrixClient::RoomMessageEvent*);
+    
+    static bool isCommand(const QString& s);
+    static bool isCommand(const QMatrixClient::RoomMessageEvent*);
+    
     QString command;
     QStringList args;
 };
@@ -34,12 +40,13 @@ public:
     virtual ~Watcher();
     
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
+
+    // Duplicated for convenience
+    static bool isCommand(const QString& s) { return CommandArgs::isCommand(s); }
+    static bool isCommand(const QMatrixClient::RoomMessageEvent* e) { return CommandArgs::isCommand(e); }
     
-    static bool isCommand(const QString& s);
-    static bool isCommand(const QMatrixClient::RoomMessageEvent*);
-    
-    CommandArgs extractCommand(QString);  // Copied because it's modified in the method
-    CommandArgs extractCommand(const QMatrixClient::RoomMessageEvent*);
+    static void message(QMatrixClient::Room* room, const QStringList& l);
+    static void message(QMatrixClient::Room* room, const QString& s);
     
 protected:
     Bot* m_bot;

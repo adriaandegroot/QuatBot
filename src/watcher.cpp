@@ -13,6 +13,55 @@ namespace QuatBot
 {
 static constexpr const QChar COMMAND_PREFIX('!'); // 0x1575); // ᕵ Nunavik Hi
 
+static QString munge(const QString& s)
+{
+    return s.trimmed();
+}
+
+CommandArgs::CommandArgs(QString s)
+{
+    if (isCommand(s))
+    {
+        QStringList parts = s.remove(0,1).split(' ');
+        QStringList r;
+        for (int i=1; i<parts.count(); ++i)
+            r << munge(parts[i]);
+
+        command = munge(parts[0]);
+        args = r;
+    }
+}
+
+CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e) :
+    CommandArgs(e->plainBody())
+{
+}
+
+
+bool CommandArgs::isCommand(const QString& s)
+{
+    return s.startsWith(COMMAND_PREFIX);
+}
+
+bool CommandArgs::isCommand(const QMatrixClient::RoomMessageEvent* e)
+{
+    // There must be a faster way, by looking at raw data
+    return isCommand(e->plainBody());
+}
+
+
+
+
+void Watcher::message(QMatrixClient::Room* room, const QStringList& l)
+{
+    room->postPlainText(l.join(' '));
+}
+
+void Watcher::message(QMatrixClient::Room* room, const QString& s)
+{
+    room->postPlainText(s);
+}
+
 Watcher::Watcher(QuatBot::Bot* parent) :
     m_bot(parent)
 {
@@ -21,41 +70,5 @@ Watcher::Watcher(QuatBot::Bot* parent) :
 Watcher::~Watcher()
 {
 }
-
-
-static QString munge(const QString& s)
-{
-    return s.trimmed();
-}
-
-CommandArgs Watcher::extractCommand(QString s)
-{
-    if (!isCommand(s))
-        return CommandArgs{};
-    
-    QStringList parts = s.remove(0,1).split(' ');
-    QStringList r;
-    for (int i=1; i<parts.count(); ++i)
-        r << munge(parts[i]);
-                   
-    return {munge(parts[0]), r};
-}
-
-bool Watcher::isCommand(const QString& s)
-{
-    return s.startsWith(COMMAND_PREFIX);
-}
-
-bool Watcher::isCommand(const QMatrixClient::RoomMessageEvent* e)
-{
-    // There must be a faster way, by looking at raw data
-    return isCommand(e->plainBody());
-}
-
-CommandArgs Watcher::extractCommand(const QMatrixClient::RoomMessageEvent* e)
-{
-    return extractCommand(e->plainBody());
-}
-
 
 }  // namespace

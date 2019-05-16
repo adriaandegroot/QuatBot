@@ -131,7 +131,7 @@ void Logger::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomM
 
 void Logger::handleCommand(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
 {
-    auto cmd = extractCommand(event);
+    auto cmd = CommandArgs(event);
     if (cmd.command == "log")
     {
         if (cmd.args.count() < 1)

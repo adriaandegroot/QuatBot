@@ -13,11 +13,6 @@
 
 namespace QuatBot
 {
-static void echo(QMatrixClient::Room* room, const QStringList& l)
-{
-    room->postPlainText(l.join(' '));
-}
-
 static void fortune(QMatrixClient::Room* room)
 {
     QProcess f;
@@ -26,10 +21,10 @@ static void fortune(QMatrixClient::Room* room)
     if (f.exitCode()==0)
     {
         QString text = QString::fromLatin1(f.readAllStandardOutput());
-        echo(room, QStringList{text});
+        Watcher::message(room, text);
     }
     else
-        echo(room, QStringList{"No fortune for you!"});
+        Watcher::message(room, "No fortune for you!");
 }
 
 BasicCommands::BasicCommands(Bot* parent) :
@@ -44,18 +39,18 @@ BasicCommands::~BasicCommands()
 void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)
 {
     if (l.command == QStringLiteral("echo"))
-        echo(room, l.args);
+        message(room, l.args);
     else if (l.command == QStringLiteral("fortune"))
         fortune(room);
     else
-        echo(room, QStringList{QString("I don't understand '%1'.").arg(l.command)});
+        message(room, QString("I don't understand '%1'.").arg(l.command));
 }
 
 void QuatBot::BasicCommands::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
 {
     QString message = event->plainBody();
     if (isCommand(message))
-        handleCommand(room, extractCommand(message));
+        handleCommand(room, CommandArgs(message));
 }
 
 }
