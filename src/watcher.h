@@ -89,7 +89,7 @@ public:
     virtual QString moduleName() const = 0;
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) = 0;
-    virtual void handleCommand(QMatrixClient::Room*, const CommandArgs&) = 0;
+    virtual void handleCommand(const CommandArgs&) = 0;
 
 protected:
     /// @brief human-readable version of the-command-for @p s with command-prefix

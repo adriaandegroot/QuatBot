@@ -25,7 +25,7 @@ public:
     virtual QString moduleName() const override;
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
-    virtual void handleCommand(QMatrixClient::Room* room, const CommandArgs&) override;
+    virtual void handleCommand(const CommandArgs&) override;
    
     enum class State
     {
@@ -35,10 +35,10 @@ public:
     } ;
     
 protected:
-    void shortStatus(QMatrixClient::Room*) const;
-    void status(QMatrixClient::Room*) const;
+    void shortStatus() const;
+    void status() const;
     
-    void doNext(QMatrixClient::Room*);
+    void doNext();
     
 private:
     State m_state;

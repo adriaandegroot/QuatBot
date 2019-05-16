@@ -24,11 +24,6 @@ namespace QuatBot
 class CommandArgs;
 class Watcher;
 
-/// @brief Looks up a Matrix Id from a userName (possibly a nickname)
-QString userLookup(QMatrixClient::Room* room, const QString& userName);
-/// @brief All the user ids from the room
-QStringList userIds(QMatrixClient::Room* room);
-
 class Bot : public QObject
 {
 friend class BasicCommands;  // Allows to call setOps
@@ -38,12 +33,19 @@ public:
     
     virtual ~Bot() override;
     
+    struct Silent {};
+    
     /// @brief is the @p user an operator of the bot?
-    bool checkOps(const QString& user);
+    bool checkOps(const QString& user, Silent s);
     /// @brief is the @p cmd issued by an operator?
-    bool checkOps(const CommandArgs& cmd);
+    bool checkOps(const CommandArgs& cmd, Silent s);
     /// @brief is the @p cmd issued by an operator? Warning message if not.
-    bool checkOps(const CommandArgs& cmd, QMatrixClient::Room* room);
+    bool checkOps(const CommandArgs& cmd);
+
+    /// @brief Looks up a Matrix Id from a userName (possibly a nickname)
+    QString userLookup(const QString& userName);
+    /// @brief All the user ids from the room
+    QStringList userIds();
 
     /// @brief Sends a message to the given @p room
     void message(const QStringList& l);

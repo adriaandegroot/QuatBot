@@ -42,7 +42,7 @@ QString BasicCommands::moduleName() const
     return QString();
 }
 
-void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)
+void BasicCommands::handleCommand(const CommandArgs& l)
 {
     if (l.command == QStringLiteral("echo"))
     {
@@ -54,13 +54,13 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
     }
     else if (l.command == QStringLiteral("op"))
     {
-        if (m_bot->checkOps(l, room))
+        if (m_bot->checkOps(l))
         {
             if (l.args.count() > 0) 
             {
                 for (const auto& u : l.args)
                 {
-                    QString user = userLookup(room, u);
+                    QString user = m_bot->userLookup(u);
                     if (user.isEmpty())
                     {
                         continue;
@@ -87,13 +87,13 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
     }
     else if (l.command == QStringLiteral("deop"))
     {
-        if (m_bot->checkOps(l, room))
+        if (m_bot->checkOps(l))
         {
             if (l.args.count() > 0) 
             {
                 for (const auto& u : l.args)
                 {
-                    QString user = userLookup(room, u);
+                    QString user = m_bot->userLookup(u);
                     if (user.isEmpty())
                     {
                         continue;

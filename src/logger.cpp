@@ -160,7 +160,7 @@ void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
     d->log(event);
 }
 
-void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
+void Logger::handleCommand(const CommandArgs& cmd)
 {
     bool statusReport = true;
     if (cmd.args.count() > 0)
@@ -170,14 +170,14 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     }
     else if (cmd.command == "on")
     {
-        if (m_bot->checkOps(cmd, room))
+        if (m_bot->checkOps(cmd))
         {
             d->open(cmd.id);
         }
     }
     else if (cmd.command == "off")
     {
-        if (m_bot->checkOps(cmd, room))
+        if (m_bot->checkOps(cmd))
         {
             d->close();
         }
