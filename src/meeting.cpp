@@ -139,7 +139,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("breakout"))
     {
-        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        if (!(m_state == State::InProgress))
         {
             shortStatus();
         }
@@ -160,7 +160,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(QString("Usage: %1 <status|rollcall|next|skip|bump|done>").arg(displayCommand()));
+        message(QString("Usage: %1 <status|rollcall|next|breakout|skip|bump|done>").arg(displayCommand()));
     }
 }
 
