@@ -25,6 +25,18 @@
 
 namespace QuatBot
 {
+void message(QMatrixClient::Room* room, const QStringList& l)
+{
+    message(room, l.join(' '));
+}
+
+void message(QMatrixClient::Room* room, const QString& s)
+{
+    room->postPlainText(s);
+    qDebug() << "**BOT**" << s;
+}
+
+
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
         QObject(),
         m_conn(conn),
@@ -156,7 +168,7 @@ bool Bot::checkOps(const QuatBot::CommandArgs& cmd, QMatrixClient::Room* room)
 {
     if (checkOps(cmd))
         return true;
-    Watcher::message(room, "Only operators can do that.");
+    message(room, "Only operators can do that.");
     return false;
 }
 

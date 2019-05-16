@@ -23,10 +23,10 @@ static void fortune(QMatrixClient::Room* room)
     if (f.exitCode()==0)
     {
         QString text = QString::fromLatin1(f.readAllStandardOutput());
-        Watcher::message(room, text);
+        message(room, text);
     }
     else
-        Watcher::message(room, "No fortune for you!");
+        message(room, "No fortune for you!");
 }
 
 BasicCommands::BasicCommands(Bot* parent) :

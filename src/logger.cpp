@@ -118,14 +118,14 @@ void Logger::Private::report(QMatrixClient::Room* room)
 {
     if (!isOpen())
     {
-        Watcher::message(room, "Logging is off.");
+        message(room, "Logging is off.");
     }
     else if (m_lines > 0)
     {
-        Watcher::message(room, QString("Logging is on, %1 lines.").arg(m_lines));
+        message(room, QString("Logging is on, %1 lines.").arg(m_lines));
     }
     else
-        Watcher::message(room, QString("Logging to %1").arg(m_file->fileName()));
+        message(room, QString("Logging to %1").arg(m_file->fileName()));
 }
         
 

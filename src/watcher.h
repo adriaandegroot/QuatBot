@@ -21,14 +21,39 @@ namespace QuatBot
 {
 class Bot;
 
+/** @brief A command, with 0 or more arguments.
+ * 
+ * Commands have a **primary** command, and zero or more arguments.
+ * Support for sub-commands comes through the pop() method, which shifts
+ * an argument into the primary-command position.
+ * 
+ * Commands may carry an id and a user, if those were available at
+ * creation. Commands are only created from strings (and messages)
+ * that start with the special COMMAND_PREFIX character (defaults ~).
+ */
 struct CommandArgs
 {
+    /** @brief Build a command list from a string.
+     * 
+     * This kind of command does not carry id or user information.
+     * If the string does not start with COMMAND_PREFIX, creates
+     * an invalid command.
+     */
     explicit CommandArgs(QString);   // Copied because it's modified in the method
+    /** @brief Build a command list from an event.
+     * 
+     * This kind of command carries the id and user information from
+     * the Matrix event. If the text of the message does not start with
+     * COMMAND_PREFIX, an invalid command is created.
+     */
     explicit CommandArgs(const QMatrixClient::RoomMessageEvent*);
     
+    /// @brief Checks @p s for COMMAND_PREFIX
     static bool isCommand(const QString& s);
-    static bool isCommand(const QMatrixClient::RoomMessageEvent*);
+    /// @brief Checks @p e for COMMAND_PREFIX at the start of the message text
+    static bool isCommand(const QMatrixClient::RoomMessageEvent* e);
     
+    /// @brief Is this a valid command list?
     bool isValid() const { return !command.isEmpty(); }
 
     /** @brief "pops" a subcommand
@@ -66,13 +91,6 @@ public:
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
     virtual void handleCommand(QMatrixClient::Room*, const CommandArgs&) = 0;
 
-    // Duplicated for convenience
-    static bool isCommand(const QString& s) { return CommandArgs::isCommand(s); }
-    static bool isCommand(const QMatrixClient::RoomMessageEvent* e) { return CommandArgs::isCommand(e); }
-    
-    static void message(QMatrixClient::Room* room, const QStringList& l);
-    static void message(QMatrixClient::Room* room, const QString& s);
-    
 protected:
     /// @brief human-readable version of the-command-for @p s with command-prefix
     QString displayCommand(const QString& s);

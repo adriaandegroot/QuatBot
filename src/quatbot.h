@@ -24,6 +24,9 @@ namespace QuatBot
 class CommandArgs;
 class Watcher;
 
+void message(QMatrixClient::Room* room, const QStringList& l);
+void message(QMatrixClient::Room* room, const QString& s);
+
 class Bot : public QObject
 {
 friend class BasicCommands;  // Allows to call setOps
