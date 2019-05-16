@@ -114,6 +114,14 @@ void BasicCommands::handleCommand(const CommandArgs& l)
             }
         }
     }
+    else if (l.command == QStringLiteral("quit"))
+    {
+        if (m_bot->checkOps(l))
+        {
+            m_bot->deleteLater();
+            message(QString("Goodbye (bot operation terminated)!"));
+        }
+    }
     else
         message(QString("I don't understand '%1'.").arg(l.command));
 }
