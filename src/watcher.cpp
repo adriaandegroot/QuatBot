@@ -11,7 +11,7 @@
 
 namespace QuatBot
 {
-static constexpr const QChar COMMAND_PREFIX('!'); // 0x1575); // ᕵ Nunavik Hi
+static constexpr const QChar COMMAND_PREFIX('~'); // 0x1575); // ᕵ Nunavik Hi
 
 static QString munge(const QString& s)
 {
