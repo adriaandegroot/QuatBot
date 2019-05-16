@@ -62,7 +62,7 @@ QStringList Bot::userIds()
 }
 
 
-Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
+Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops) :
         QObject(),
         m_conn(conn),
         m_roomName(roomName)
@@ -99,6 +99,10 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
     );
     
     setOps(conn.userId(), true);
+    for (const auto& u : ops)
+    {
+        setOps(u, true);
+    }
 }
     
 Bot::~Bot()
@@ -162,6 +166,11 @@ void Bot::addedMessages(int from, int to)
 
 bool Bot::setOps(const QString& user, bool op)
 {
+    if (!user.startsWith('@') || !user.contains(':'))
+    {
+        // Doesn't look like a matrix ID to me
+        return false;
+    }
     if (op)
     {
         m_operators.insert(user);

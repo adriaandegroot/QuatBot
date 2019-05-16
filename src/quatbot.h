@@ -48,8 +48,13 @@ class Bot : public QObject
 friend class BasicCommands;  // Allows to call setOps
 
 public:
-    /// @brief Create a bot for the named @p roomName
-    explicit Bot(QMatrixClient::Connection& conn, const QString& roomName);
+    /** @brief Create a bot for the named @p roomName
+     * 
+     * Joins the @p roomName. Matrix-ids listed in @p ops are
+     * added immediately to the set of operators. The user
+     * set in @p conn is also always an operator.
+     */
+    explicit Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops=QStringList());
     virtual ~Bot() override;
     
     /// @brief Tag-class used in checkOps() overrides.

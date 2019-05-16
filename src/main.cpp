@@ -37,12 +37,15 @@ int main(int argc, char** argv)
         "User to use to connect.", "user");
     QCommandLineOption passOption( QStringList{"p", "password"},
         "Password to use to connect (will prompt if unset).", "password");
+    QCommandLineOption operatorOption( QStringList{"o", "operator"},
+        "Additional user-id to consider as operator.", "userid");
     QCommandLineParser parser;
     parser.setApplicationDescription("Chatbot for meeting-management on Matrix");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption(userOption);
     parser.addOption(passOption);
+    parser.addOption(operatorOption);
     parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
     parser.process(app);
 
@@ -78,7 +81,7 @@ int main(int argc, char** argv)
             for (const auto& r: parser.positionalArguments())
             {
                 // Unused, gets cleaned up by itself
-                QuatBot::Bot* bot = new QuatBot::Bot(conn, r);
+                QuatBot::Bot* bot = new QuatBot::Bot(conn, r, parser.values(operatorOption));
             }
         }
     );
