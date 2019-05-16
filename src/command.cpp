@@ -38,6 +38,11 @@ static QString fortune()
 // Copy because we modify the string
 static QString cowsay(QString message)
 {
+    message = message.simplified();
+    message.truncate(40);
+    if (message.isEmpty())
+        return QStringLiteral("ix-nay on the oo-may");
+
     static int instance = 0;
     static const char* const specials[16]={
         nullptr, nullptr, "-d", nullptr, 
@@ -51,7 +56,6 @@ static QString cowsay(QString message)
         arg << specials[instance];
     instance = (instance+1) & 0xf;
     // The message
-    message.truncate(40);
     arg << message;
     
     return runProcess(QStringLiteral("/usr/local/bin/cowsay"), arg, "Moo!");
