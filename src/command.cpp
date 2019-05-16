@@ -15,18 +15,17 @@
 
 namespace QuatBot
 {
-static void fortune(QMatrixClient::Room* room)
+static QString fortune()
 {
     QProcess f;
     f.start("/usr/bin/fortune", {"freebsd-tips"});
     f.waitForFinished();
     if (f.exitCode()==0)
     {
-        QString text = QString::fromLatin1(f.readAllStandardOutput());
-        message(room, text);
+        return QString::fromLatin1(f.readAllStandardOutput());
     }
     else
-        message(room, "No fortune for you!");
+        return QStringLiteral("No fortune for you!");
 }
 
 BasicCommands::BasicCommands(Bot* parent) :
@@ -47,11 +46,11 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
 {
     if (l.command == QStringLiteral("echo"))
     {
-        message(room, l.args);
+        message(l.args);
     }
     else if (l.command == QStringLiteral("fortune"))
     {
-        fortune(room);
+        message(fortune());
     }
     else if (l.command == QStringLiteral("op"))
     {
@@ -68,23 +67,23 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
                     }
                     if (m_bot->setOps(user, true))
                     {
-                        message(room, QString("%1 is now an operator").arg(user));
+                        message(QString("%1 is now an operator").arg(user));
                     }
                     else
                     {
-                        message(room, QString("%1 failed.").arg(displayCommand("op")));
+                        message(QString("%1 failed.").arg(displayCommand("op")));
                     }
                 }
             }
             else
             {
-                message(room, QString("Usage: %1 <userid>").arg(displayCommand("op")));
+                message(QString("Usage: %1 <userid>").arg(displayCommand("op")));
             }
         }
     }
     else if (l.command == QStringLiteral("ops"))
     {
-        message(room, QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
+        message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
     }
     else if (l.command == QStringLiteral("deop"))
     {
@@ -101,22 +100,22 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
                     }
                     if (m_bot->setOps(user, false))
                     {
-                        message(room, QString("%1 is no longer an operator").arg(user));
+                        message(QString("%1 is no longer an operator").arg(user));
                     }
                     else
                     {
-                        message(room, QString("%1 failed.").arg(displayCommand("deop")));
+                        message(QString("%1 failed.").arg(displayCommand("deop")));
                     }
                 }
             }
             else
             {
-                message(room, QString("Usage: %1 <userid>").arg(displayCommand("deop")));
+                message(QString("Usage: %1 <userid>").arg(displayCommand("deop")));
             }
         }
     }
     else
-        message(room, QString("I don't understand '%1'.").arg(l.command));
+        message(QString("I don't understand '%1'.").arg(l.command));
 }
 
 void QuatBot::BasicCommands::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)

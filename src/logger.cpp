@@ -24,7 +24,7 @@ public:
     virtual ~Private();
     
     void log(const QMatrixClient::RoomMessageEvent* message);
-    void report(QMatrixClient::Room* r);
+    void report(Bot*);
 
     void open(const QString& name);
     void close();
@@ -114,18 +114,18 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
     }
 }
 
-void Logger::Private::report(QMatrixClient::Room* room)
+void Logger::Private::report(Bot* bot)
 {
     if (!isOpen())
     {
-        message(room, "Logging is off.");
+        bot->message("Logging is off.");
     }
     else if (m_lines > 0)
     {
-        message(room, QString("Logging is on, %1 lines.").arg(m_lines));
+        bot->message(QString("Logging is on, %1 lines.").arg(m_lines));
     }
     else
-        message(room, QString("Logging to %1").arg(m_file->fileName()));
+        bot->message(QString("Logging to %1").arg(m_file->fileName()));
 }
         
 
@@ -165,7 +165,7 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     bool statusReport = true;
     if (cmd.args.count() > 0)
     {
-        message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand()));
+        message(QString("Usage: %1 <on|off|status>").arg(displayCommand()));
         statusReport = false;
     }
     else if (cmd.command == "on")
@@ -188,13 +188,13 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
     }
     else
     {
-        message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand()));
+        message(QString("Usage: %1 <on|off|status>").arg(displayCommand()));
         statusReport = false;
     }
     
     if (statusReport)
     {
-        d->report(room);
+        d->report(m_bot);
     }
 }
 

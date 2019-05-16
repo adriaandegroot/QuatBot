@@ -59,7 +59,7 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             m_participants.append(cmd.user);
             m_chair = cmd.user;
             shortStatus(room);
-            message(room, QStringList{"Hello @room, this is the roll-call!"} << userIds(room));
+            message(QStringList{"Hello @room, this is the roll-call!"} << userIds(room));
         }
         else
         {
@@ -98,7 +98,7 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
                 {
                     m_participants.removeAll(user);
                     m_participantsDone.insert(user);
-                    message(room, QString("User %1 will be skipped this meeting.").arg(user));
+                    message(QString("User %1 will be skipped this meeting.").arg(user));
                 }
             }
         }
@@ -119,7 +119,7 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
                     m_participants.removeAll(user);
                     m_participantsDone.remove(user);
                     m_participants.insert(0, user);
-                    message(room, QString("User %1 is up next.").arg(user));
+                    message(QString("User %1 is up next.").arg(user));
                 }
             }
         }
@@ -133,12 +133,12 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
         else
         {
             m_breakouts.append(cmd.args.join(' '));
-            message(room, QString("Registered breakout '%1'.").arg(m_breakouts.last()));
+            message(QString("Registered breakout '%1'.").arg(m_breakouts.last()));
         }
     }
     else
     {
-        message(room, QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
+        message(QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
     }
 }
 
@@ -157,7 +157,7 @@ void Meeting::doNext(QMatrixClient::Room* room)
         {
             for(const auto& b : m_breakouts)
             {
-                message(room, QString("Breakout: %1").arg(b));
+                message(QString("Breakout: %1").arg(b));
             }
         }
         return;
@@ -168,11 +168,11 @@ void Meeting::doNext(QMatrixClient::Room* room)
     
     if (m_participants.count() > 0)
     {
-        message(room, QString("%1, you're up (after that, %2).").arg(onDeck, m_participants.first()));
+        message(QString("%1, you're up (after that, %2).").arg(onDeck, m_participants.first()));
     }
     else
     {
-        message(room, QString("%1, you're up (after that, we're done!).").arg(onDeck));
+        message(QString("%1, you're up (after that, we're done!).").arg(onDeck));
     }
 }
 
@@ -181,16 +181,16 @@ void Meeting::shortStatus(QMatrixClient::Room* room) const
     switch (m_state)
     {
         case State::None:
-            message(room, QString("No meeting in progress."));
+            message(QString("No meeting in progress."));
             return;
         case State::RollCall:
-            message(room, QString("Doing the rollcall."));
+            message(QString("Doing the rollcall."));
             return;
         case State::InProgress:
-            message(room, QString("Meeting in progress."));
+            message(QString("Meeting in progress."));
             return;
     }
-    message(room, QString("The meeting is in disarray."));
+    message(QString("The meeting is in disarray."));
 }
 
 void Meeting::status(QMatrixClient::Room* room) const
@@ -198,7 +198,7 @@ void Meeting::status(QMatrixClient::Room* room) const
     shortStatus(room);
     if (m_state != State::None)
     {
-        message(room, QString("There are %1 participants.").arg(m_participants.count()));
+        message(QString("There are %1 participants.").arg(m_participants.count()));
     }
 }
 

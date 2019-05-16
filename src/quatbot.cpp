@@ -192,7 +192,7 @@ bool Bot::checkOps(const QuatBot::CommandArgs& cmd, QMatrixClient::Room* room)
 {
     if (checkOps(cmd))
         return true;
-    message(room, "Only operators can do that.");
+    message("Only operators can do that.");
     return false;
 }
 
