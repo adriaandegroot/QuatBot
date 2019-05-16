@@ -63,6 +63,12 @@ QStringList Bot::userIds()
 
 static int instance_count = 0;
 
+static void bailOut(int timeout=0)
+{
+    QTimer::singleShot(timeout, qApp, &QCoreApplication::quit);
+}
+
+
 Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops) :
         QObject(),
         m_conn(conn),
@@ -72,17 +78,23 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
     if (conn.homeserver().isEmpty() || !conn.homeserver().isValid())
     {
         qWarning() << "Connection is invalid.";
-        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+        bailOut();
         return;
     }
         
     auto* joinRoom = conn.joinRoom(roomName);
+    if (!joinRoom)
+    {
+        qWarning() << "Can't get a join-room job.";
+        bailOut();
+        return;
+    }
     
     connect(joinRoom, &QMatrixClient::BaseJob::failure,
         [this]() 
         {
             qWarning() << "Joining room" << this->m_roomName << "failed.";
-            QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+            bailOut();
         }
     );
     connect(joinRoom, &QMatrixClient::BaseJob::success,
@@ -116,7 +128,7 @@ Bot::~Bot()
     instance_count--;
     if (instance_count<1)
     {
-        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+        bailOut(3000);  // give some time for messages to be delivered
     }
 }
     
