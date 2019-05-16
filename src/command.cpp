@@ -74,6 +74,10 @@ void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& 
             }
         }
     }
+    else if (l.command == QStringLiteral("ops"))
+    {
+        message(room, QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
+    }
     else if (l.command == QStringLiteral("deop"))
     {
         if (m_bot->checkOps(l, room))
