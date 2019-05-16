@@ -149,9 +149,18 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             message(QString("Registered breakout '%1'.").arg(m_breakouts.last()));
         }
     }
+    else if  (cmd.command == QStringLiteral("done"))
+    {
+        if (m_bot->checkOps(cmd))
+        {
+            m_state = State::None;
+            m_waiting.stop();
+            message(QString("The meeting has been forcefully ended."));
+        }
+    }
     else
     {
-        message(QString("Usage: %1 <status|rollcall|next|skip|bump>").arg(displayCommand()));
+        message(QString("Usage: %1 <status|rollcall|next|skip|bump|done>").arg(displayCommand()));
     }
 }
 
