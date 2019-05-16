@@ -50,6 +50,20 @@ bool CommandArgs::isCommand(const QMatrixClient::RoomMessageEvent* e)
     return isCommand(e->plainBody());
 }
 
+bool CommandArgs::pop()
+{
+    if (args.count() < 1)
+    {
+        command.clear();
+    }
+    else
+    {
+        command = args.first();
+        args.pop_front();
+    }
+    return isValid();
+}
+
 
 
 

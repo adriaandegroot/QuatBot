@@ -30,6 +30,19 @@ struct CommandArgs
     static bool isCommand(const QMatrixClient::RoomMessageEvent*);
     
     bool isValid() const { return !command.isEmpty(); }
+
+    /** @brief "pops" a subcommand
+     * 
+     * CommandArgs are all formed as <command> <argument..>, but where
+     * a command has subcommands, it can be useful to discard the
+     * original <command> and move the first argument -- which should be
+     * the subcommand -- into that place while removing it from the
+     * arguments list.
+     * 
+     * Returns false (and results in an invalid CommandArgs) if there
+     * is no subcommand (e.g. args is empty.
+     */
+    bool pop();
     
     QString id;  // event Id, if available
     QString command;
