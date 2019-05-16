@@ -55,12 +55,13 @@ bool CommandArgs::isCommand(const QMatrixClient::RoomMessageEvent* e)
 
 void Watcher::message(QMatrixClient::Room* room, const QStringList& l)
 {
-    room->postPlainText(l.join(' '));
+    message(room, l.join(' '));
 }
 
 void Watcher::message(QMatrixClient::Room* room, const QString& s)
 {
     room->postPlainText(s);
+    qDebug() << "**BOT**" << s;
 }
 
 Watcher::Watcher(QuatBot::Bot* parent) :
