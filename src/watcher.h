@@ -55,6 +55,13 @@ public:
     explicit Watcher(Bot* parent);
     virtual ~Watcher();
     
+    /** @brief identifier of this module.
+     * 
+     * This is used to identify which commands go where; except for
+     * the one special subclass BasicCommands, this must not be empty.
+     */
+    virtual QString moduleName() const = 0;
+    
     virtual void handleMessage(QMatrixClient::Room*, const QMatrixClient::RoomMessageEvent*) = 0;
     virtual void handleCommand(QMatrixClient::Room*, const CommandArgs&) = 0;
 
@@ -68,6 +75,7 @@ public:
 protected:
     /// @brief human-readable version of the-command-for @p s with command-prefix
     QString displayCommand(const QString& s);
+    QString displayCommand() { return displayCommand(this->moduleName()); }
     
     Bot* m_bot;
 };

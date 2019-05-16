@@ -148,6 +148,11 @@ Logger::~Logger()
 	delete d;
 }
 
+QString Logger::moduleName() const
+{
+    return QStringLiteral("log");
+}
+
 void Logger::handleMessage(QMatrixClient::Room* room, const QMatrixClient::RoomMessageEvent* event)
 {
     d->log(event);
@@ -162,7 +167,7 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
         bool statusReport = true;
         if (cmd.args.count() < 1)
         {
-            message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand("log")));
+            message(room, QString("Usage: %1 <on|off|status>").arg(displayCommand()));
             statusReport = false;
         }
         else if (cmd.args.first() == "on")
@@ -173,7 +178,7 @@ void Logger::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             ;  // Nothing, the status report is the side-effect
         else
         {
-            message(room, QString("Unknown %1-subcommand %2").arg(displayCommand("log"), cmd.args.first()));
+            message(room, QString("Unknown %1-subcommand %2").arg(displayCommand(), cmd.args.first()));
             statusReport = false;
         }
         

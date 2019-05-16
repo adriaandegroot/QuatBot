@@ -36,6 +36,11 @@ BasicCommands::~BasicCommands()
 {
 }
 
+QString BasicCommands::moduleName() const
+{
+    return QString();
+}
+
 void BasicCommands::handleCommand(QMatrixClient::Room* room, const CommandArgs& l)
 {
     if (l.command == QStringLiteral("echo"))
