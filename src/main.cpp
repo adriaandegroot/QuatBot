@@ -48,13 +48,11 @@ int main(int argc, char** argv)
     parser.addOption(operatorOption);
     parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
     parser.process(app);
-
     
-    if (argc < 4)
+    if (parser.positionalArguments().count() < 1)
     {
-        qWarning() << "Usage: quatbot <user> <pass> <room..>\n"
-            "  Give at least one room name.\n"
-            "  Use - as a password to prompt for it.";
+        qWarning() << "Usage: quatbot <options> <room..>\n"
+            "  Give at least one room name.\n";
         return 1;
     }
 

@@ -140,13 +140,19 @@ and has no other files than the single executable. The command-line
 for the bot is:
 
 ```
-quatbot <user> <password> <room..>
+quatbot <options> <room..>
 ```
 
-Enter a full Matrix user-id. Provide the full Matrix password, and one or
-more full Matrix room-ids to join.
+Use `--help` to get an overview of command-line options. The most useful
+ones will be:
 
-**NOTE** that the password is entered on the command-line, and so remains
+ - `-u <user>` to set the user (Matrix user-id) to connect as.
+ - `-o <user>` to add additional operators at startup.
+ 
+You may be prompted for a Matrix password. You can set it on the command-line
+with the `-p` option if you like.
+ 
+**NOTE** that if the password is entered on the command-line, it remains
 visible in command-history and in system tools like ps(1). Only run the
 bot on a trusted host.
 
@@ -154,7 +160,7 @@ Example for a full command-line (note the `'` around each argument
 to avoid shell processing of special characters):
 
 ```
-quatbot '@adridg:matrix.org' 'HorseBattery' '#quatbot-myownroom:matrix.org'
+quatbot -u '@adridg:matrix.org' '#quatbot-myownroom:matrix.org'
 ```
 
 Logs are written to `/tmp`, in files named `quatbot-<something>.log`.
