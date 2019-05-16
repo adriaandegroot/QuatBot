@@ -5,8 +5,8 @@
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
  */   
 
-#ifndef QUATBOT_COMMAND_H
-#define QUATBOT_COMMAND_H
+#ifndef QUATBOT_MEETING_H
+#define QUATBOT_MEETING_H
 
 #include "watcher.h"
 

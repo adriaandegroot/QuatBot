@@ -23,6 +23,7 @@
 
 #include "command.h"
 #include "logger.h"
+#include "meeting.h"
 
 namespace QuatBot
 {
@@ -80,9 +81,10 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName) :
     connect(joinRoom, &QMatrixClient::BaseJob::success,
         [this, joinRoom]()
         {
-            m_watchers.reserve(2);
+            m_watchers.reserve(3);
             m_watchers.append(new BasicCommands(this));
             m_watchers.append(new Logger(this));
+            m_watchers.append(new Meeting(this));
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
@@ -132,8 +134,6 @@ void Bot::addedMessages(int from, int to)
             CommandArgs cmd(event);
             if (cmd.isValid())
             {
-                qDebug() << "Made command" << cmd.command << cmd.args;
-                qDebug() << ".. from message" << event->plainBody();
                 bool handled = false;
                 for(const auto& w : m_watchers)
                 {

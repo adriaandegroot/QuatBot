@@ -58,6 +58,7 @@ void Meeting::handleCommand(QMatrixClient::Room* room, const CommandArgs& cmd)
             m_participants.append(cmd.user);
             m_chair = cmd.user;
             shortStatus(room);
+            message(room, "Hello @room, this is the roll-call!");
         }
         else
         {
