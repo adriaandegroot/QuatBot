@@ -83,7 +83,7 @@ const QStringList& BasicCommands::moduleCommands() const
 #ifdef ENABLE_COWSAY
         "cowsay",
 #endif
-        "op","deop","ops",
+        "ops",
         "help", "status","quit"};
     return commands;
 }
