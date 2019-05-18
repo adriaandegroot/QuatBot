@@ -32,6 +32,12 @@ const QString& Meeting::moduleName() const
     return name;
 }
 
+const QStringList& Meeting::moduleCommands() const
+{
+    static const QStringList commands{"status","rollcall","next","breakout","skip","bump","done"};
+    return commands;
+}
+
 void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
 {
     // New speaker?

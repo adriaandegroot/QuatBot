@@ -77,6 +77,18 @@ const QString& BasicCommands::moduleName() const
     return name;
 }
 
+const QStringList& BasicCommands::moduleCommands() const
+{
+    static const QStringList commands{"echo","fortune",
+#ifdef ENABLE_COWSAY
+        "cowsay",
+#endif
+        "op","deop","ops",
+        "status","quit"};
+    return commands;
+}
+
+
 static QString munge(const QTime& t)
 {
     return t.toString();

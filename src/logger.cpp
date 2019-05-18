@@ -194,6 +194,12 @@ const QString& Logger::moduleName() const
     return name;
 }
 
+const QStringList& Logger::moduleCommands() const
+{
+    static const QStringList commands{"on","off","status"};
+    return commands;
+}
+
 void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 {
     d->log(event);

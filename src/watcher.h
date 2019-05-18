@@ -106,6 +106,14 @@ public:
      */
     virtual const QString& moduleName() const = 0;
     
+    /** @brief the (sub) commands that this module understands
+     *
+     * Returns a list of commands that this module uses.
+     * Do not include the module name unless that is a valid subcommand.
+     * Do not include "help".
+     */
+    virtual const QStringList& moduleCommands() const = 0;
+    
     /** @brief Handle "virtual" message sent by the bot
      * 
      * The default implementation does nothing.

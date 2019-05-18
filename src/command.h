@@ -20,7 +20,8 @@ public:
     BasicCommands(Bot* parent);
     virtual ~BasicCommands() override;
 
-    virtual const QString& moduleName() const override;
+    const QString& moduleName() const override;
+    const QStringList& moduleCommands() const override;
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
