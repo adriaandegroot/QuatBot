@@ -73,7 +73,7 @@ BasicCommands::~BasicCommands()
 
 const QString& BasicCommands::moduleName() const
 {
-    static const QString name;
+    static const QString name(QStringLiteral("quatbot"));
     return name;
 }
 
@@ -193,7 +193,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
         for (const auto& w : m_bot->watcherNames())
         {
             auto* watcher = m_bot->getWatcher(w);
-            if (watcher && watcher->moduleCommands().contains("status"))
+            if (watcher && (watcher->moduleName() != moduleName()) && watcher->moduleCommands().contains("status"))
             {
                 watcher->handleCommand(l);
             }
