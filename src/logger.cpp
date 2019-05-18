@@ -212,17 +212,11 @@ void Logger::handleMessage(const QString& s)
 
 void Logger::handleCommand(const CommandArgs& cmd)
 {
-    bool statusReport = true;
-    if (cmd.args.count() > 0)
-    {
-        message(QString("Usage: %1 <on|off|status>").arg(displayCommand()));
-        statusReport = false;
-    }
-    else if (cmd.command == "on")
+    if (cmd.command == "on")
     {
         if (m_bot->checkOps(cmd))
         {
-            d->open(cmd.id);
+            d->open(cmd.args.count() > 0 ? cmd.args[0] : cmd.id);
         }
     }
     else if (cmd.command == "off")
@@ -234,17 +228,11 @@ void Logger::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == "status")
     {
-        ;  // Nothing, the status report is the side-effect
+        d->report(m_bot);
     }
     else
     {
         message(Usage{});
-        statusReport = false;
-    }
-    
-    if (statusReport)
-    {
-        d->report(m_bot);
     }
 }
 
