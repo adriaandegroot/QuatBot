@@ -109,7 +109,10 @@ const QString& Coffee::moduleName() const
 
 const QStringList& Coffee::moduleCommands() const
 {
-    static const QStringList commands{"coffee", "cookie", "status", "lart"};
+    static const QStringList commands{"coffee", "cookie", "lart",
+        "stats",  // long status
+        "status"  // brief status
+    };
     return commands;
 }
 
@@ -119,8 +122,9 @@ void Coffee::handleMessage(const QMatrixClient::RoomMessageEvent*)
 
 void Coffee::handleSubCommand(const CommandArgs& cmd)
 {
-    if (cmd.command == QStringLiteral("eat"))
+    if ((cmd.command == QStringLiteral("eat")) || cmd.command.isEmpty())
     {
+        // Empty is when you just go ~cookie
         auto& c = d->find(cmd.user);
         if (c.m_cookie > 0)
         {
@@ -174,10 +178,13 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
 
 void Coffee::handleCommand(const CommandArgs& cmd)
 {
-    if (cmd.command == QStringLiteral("status"))
+    if ((cmd.command == QStringLiteral("status")) || (cmd.command == QStringLiteral("stats")))
     {
         message(QString("(coffee) There are %1 cookies in the jar.").arg(d->cookies()));
-        d->stats(m_bot);
+        if (cmd.command == QStringLiteral("stats"))
+        {
+            d->stats(m_bot);
+        }
     }
     else if (cmd.command == QStringLiteral("cookie"))
     {
@@ -185,8 +192,10 @@ void Coffee::handleCommand(const CommandArgs& cmd)
         sub.pop();
         handleSubCommand(sub);
     }
-    else if (cmd.command == QStringLiteral("coffee"))
+    else if ((cmd.command == QStringLiteral("coffee")) || (cmd.command.isEmpty()))
     {
+        // THe empty case is when you enter just ~coffee. That's interpreted
+        // as a module name, and the command goes away.
         if (d->coffee(cmd.user) <= 1)
         {
             message(QStringList{cmd.user, "is now a coffee drinker."});
@@ -199,6 +208,10 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     else if (cmd.command == QStringLiteral("lart"))
     {
         message(QString("%1 is eaten by a large trout.").arg(cmd.user));
+    }
+    else
+    {
+        message(Usage{});
     }
 }
 
