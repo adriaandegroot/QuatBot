@@ -73,7 +73,6 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             m_participants.append(cmd.user);
             m_chair = cmd.user;
             m_current.clear();
-            shortStatus();
             message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
             m_waiting.start(60000);  // one minute until reminder
         }
