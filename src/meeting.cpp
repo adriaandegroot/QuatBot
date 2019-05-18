@@ -219,30 +219,34 @@ void Meeting::doNext()
     m_waiting.start(30000); // half a minute to reminder
 }
 
+static QString _shortStatus(Meeting::State s)
+{
+    switch (s)
+    {
+        case Meeting::State::None:
+            return QString("No meeting in progress.");
+        case Meeting::State::RollCall:
+            return QString("Doing the rollcall.");
+        case Meeting::State::InProgress:
+            return QString("Meeting in progress.");
+    }
+    return QString("The meeting is in disarray.");
+}
+
 void Meeting::shortStatus() const
 {
-    switch (m_state)
-    {
-        case State::None:
-            message(QString("No meeting in progress."));
-            return;
-        case State::RollCall:
-            message(QString("Doing the rollcall."));
-            return;
-        case State::InProgress:
-            message(QString("Meeting in progress."));
-            return;
-    }
-    message(QString("The meeting is in disarray."));
+    message(_shortStatus(m_state));
 }
 
 void Meeting::status() const
 {
-    shortStatus();
+    QStringList l{"(meeting)"};
+    l << _shortStatus(m_state);
     if (m_state != State::None)
     {
-        message(QString("There are %1 participants.").arg(m_participants.count()));
+        l << QString("There are %1 participants.").arg(m_participants.count());
     }
+    message(l);
 }
 
 void Meeting::enableLogging(const CommandArgs& cmd, bool b)
