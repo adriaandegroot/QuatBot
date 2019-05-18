@@ -36,6 +36,9 @@ public:
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
 
+protected:
+    void handleSubCommand(const CommandArgs&);
+    
 private:
     Private* d;
 };

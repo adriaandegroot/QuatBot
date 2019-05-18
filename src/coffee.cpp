@@ -12,11 +12,21 @@
 namespace QuatBot
 {
 
-struct CoffeeStats
+class CoffeeStats
 {
-    int m_coffee;
-    int m_cookie;
-    int m_cookieEated;
+public:
+    CoffeeStats()
+    {
+    }
+    CoffeeStats(const QString& u) :
+        m_user(u)
+    {
+    }
+    
+    QString m_user;
+    int m_coffee = 0;
+    int m_cookie = 0;
+    int m_cookieEated = 0;
 };
 
 class Coffee::Private
@@ -30,28 +40,38 @@ public:
     {
         for (const auto& u : m_stats)
         {
-            bot->message(QString("%1 has had %2 cups of coffee and has eaten %3 cookies.").arg(u.first).arg(u.second.m_coffee).arg(u.second.m_cookie));
+            bot->message(QString("%1 has had %2 cups of coffee and has eaten %3 cookies.").arg(u.m_user).arg(u.m_coffee).arg(u.m_cookie));
         }
     }
 
     int cookies() const { return m_cookiejar; }
-
+    
+    CoffeeStats& find(const QString& user)
+    {
+        if (!m_stats.contains(user))
+        {
+            m_stats.insert(user, CoffeeStats(user));
+        }
+        return m_stats[user];
+    }
+    
     int coffee(const QString& user)
     {
-        if (m_stats.contains(user))
-        {
-            CoffeeStats& c = m_stats[user];
-            c.m_coffee++;
-            return c.m_coffee;
-        }
-        else
-        {
-            m_stats.insert(user, CoffeeStats{1,0,0});
-            return 1;
-        }
+        auto& c = find(user);
+        return ++c.m_coffee;
     }
 
-
+    bool giveCookie(CoffeeStats& user)
+    {
+        if (m_cookiejar > 0)
+        {
+            m_cookiejar--;
+            user.m_cookie++;
+            return true;
+        }
+        return false;
+    }
+    
 private:
     int m_cookiejar = 12;  // a dozen cookies by default
     QMap<QString, CoffeeStats> m_stats;
@@ -85,6 +105,54 @@ void Coffee::handleMessage(const QMatrixClient::RoomMessageEvent*)
 {
 }
 
+void Coffee::handleSubCommand(const CommandArgs& cmd)
+{
+    if (cmd.command == QStringLiteral("eat"))
+    {
+        auto& c = d->find(cmd.user);
+        if (c.m_cookie > 0)
+        {
+            c.m_cookie--;
+            c.m_cookieEated++;
+            message(QString("**%1** nom nom nom").arg(cmd.user));
+        }
+        else
+        {
+            message("You haz no cookiez :(");
+        }
+    }
+    if (cmd.command == QStringLiteral("give"))
+    {
+        auto& user = d->find(cmd.user);
+        for (const auto& other : cmd.args)
+        {
+            auto& otheruser = d->find(other);
+            if (otheruser.m_user == user.m_user)
+            {
+                message("It's a circular economy.");
+            }
+            else if (user.m_cookie > 0)
+            {
+                user.m_cookie--;
+                otheruser.m_cookie++;
+                message(QString("**%1** gives %2 a cookie.").arg(user.m_user, otheruser.m_user));
+            }
+            else
+            {
+                if (d->giveCookie(otheruser))
+                {
+                    message(QString("%2 gets a cookie from the jar.").arg(otheruser.m_user));
+                }
+                else
+                {
+                    message(QString("Hey! Who took all the cookies from the jar?"));
+                }
+            }
+        }
+    }
+}
+
+
 void Coffee::handleCommand(const CommandArgs& cmd)
 {
     if (cmd.command == QStringLiteral("status"))
@@ -109,4 +177,6 @@ void Coffee::handleCommand(const CommandArgs& cmd)
             message(QStringList{cmd.user, "has a nice cup of coffee."});
         }
     }
+}
+
 }
