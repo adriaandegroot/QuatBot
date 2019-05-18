@@ -97,6 +97,7 @@ public:
      * looking up the others by name.
      */
     Watcher* getWatcher(const QString& name);
+    QStringList watcherNames() const;
     
 protected:
     /// @brief Called once the room is loaded for the first time.

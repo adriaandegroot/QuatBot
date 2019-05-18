@@ -212,16 +212,16 @@ void Meeting::shortStatus() const
     switch (m_state)
     {
         case State::None:
-            message(QString("No meeting in progress."));
+            message(QString("(meeting) No meeting in progress."));
             return;
         case State::RollCall:
-            message(QString("Doing the rollcall."));
+            message(QString("(meeting) Doing the rollcall."));
             return;
         case State::InProgress:
-            message(QString("Meeting in progress."));
+            message(QString("(meeting) Meeting in progress."));
             return;
     }
-    message(QString("The meeting is in disarray."));
+    message(QString("(meeting) The meeting is in disarray."));
 }
 
 void Meeting::status() const
@@ -229,7 +229,7 @@ void Meeting::status() const
     shortStatus();
     if (m_state != State::None)
     {
-        message(QString("There are %1 participants.").arg(m_participants.count()));
+        message(QString("(meeting) There are %1 participants.").arg(m_participants.count()));
     }
 }
 

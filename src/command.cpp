@@ -183,13 +183,21 @@ void BasicCommands::handleCommand(const CommandArgs& l)
     else if (l.command == QStringLiteral("status"))
     {
         message(QString(
-            "It is %1. Your message was sent at %2.\n"
+            "(quatbot) It is %1. Your message was sent at %2. "
             "I can see %3 people in the room. I have processed %4 messages and %5 commands.")
             .arg(munge(QTime::currentTime()), munge(m_lastMessageTime))
             .arg(m_bot->userIds().count())
             .arg(m_messageCount)
             .arg(m_commandCount)
         );
+        for (const auto& w : m_bot->watcherNames())
+        {
+            auto* watcher = m_bot->getWatcher(w);
+            if (watcher && watcher->moduleCommands().contains("status"))
+            {
+                watcher->handleCommand(l);
+            }
+        }
     }
     else
     {

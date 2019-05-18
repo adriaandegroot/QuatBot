@@ -280,6 +280,19 @@ Watcher* Bot::getWatcher(const QString& name)
     return nullptr;
 }
 
+QStringList Bot::watcherNames() const
+{
+    QStringList names;
+    for (const auto& w : m_watchers)
+    {
+        if (!w->moduleName().isEmpty())
+        {
+            names << w->moduleName();
+        }
+    }
+    return names;
+}
+
 void Bot::setupWatchers()
 {
     m_watchers.reserve(3);

@@ -156,14 +156,14 @@ void Logger::Private::report(Bot* bot)
 {
     if (!isOpen())
     {
-        bot->message("Logging is off.");
+        bot->message("(log) Logging is off.");
     }
     else if (m_lines > 0)
     {
-        bot->message(QString("Logging is on, %1 lines.").arg(m_lines));
+        bot->message(QString("(log) Logging is on, %1 lines.").arg(m_lines));
     }
     else
-        bot->message(QString("Logging to %1").arg(m_file->fileName()));
+        bot->message(QString("(log) Logging to %1").arg(m_file->fileName()));
 }
         
 
