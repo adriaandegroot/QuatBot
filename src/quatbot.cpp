@@ -182,10 +182,24 @@ void Bot::addedMessages(int from, int to)
                         break;
                     }
                 }
+                
                 // Special case: unhandled ones go to BasicCommands
                 // which handles all the "rest" items.
                 if (!handled)
-                    m_watchers[0]->handleCommand(cmd);
+                {
+                    for(const auto& w : m_watchers)
+                    {
+                        if (w->moduleCommands().contains(cmd.command))
+                        {
+                            w->handleCommand(cmd);
+                            handled=true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!handled)
+                    message(QString("I don't understand '%1'.").arg(cmd.command));
             }
         }
     }

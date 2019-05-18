@@ -191,8 +191,6 @@ void BasicCommands::handleCommand(const CommandArgs& l)
             .arg(m_commandCount)
         );
     }
-    else
-        message(QString("I don't understand '%1'.").arg(l.command));
     m_commandCount++;
 }
 
