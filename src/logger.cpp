@@ -37,6 +37,7 @@ public:
     {
         return m_file ? m_file->fileName() : QString();
     }
+    void flush();
     
 private:
     QFile* m_file = nullptr;
@@ -100,6 +101,18 @@ void Logger::Private::open(const QString& name)
     }
     m_stream = t;
     m_lines = 0;
+}
+
+void Logger::Private::flush()
+{
+    if (m_stream)
+    {
+        m_stream->flush();
+    }
+    if (m_file)
+    {
+        m_file->flush();
+    }
 }
 
 // make copies because we'll be modifying them
@@ -208,6 +221,7 @@ void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
 void Logger::handleMessage(const QString& s)
 {
     d->log(s);
+    d->flush();
 }
 
 void Logger::handleCommand(const CommandArgs& cmd)
@@ -217,6 +231,8 @@ void Logger::handleCommand(const CommandArgs& cmd)
         if (m_bot->checkOps(cmd))
         {
             d->open(cmd.args.count() > 0 ? cmd.args[0] : cmd.id);
+            d->log(QString("Log started %1.").arg(QDateTime::currentDateTime().toString()));
+            d->flush();
         }
     }
     else if (cmd.command == "off")
