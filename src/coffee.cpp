@@ -16,6 +16,7 @@ struct CoffeeStats
 {
     int m_coffee;
     int m_cookie;
+    int m_cookieEated;
 };
 
 class Coffee::Private
@@ -23,6 +24,14 @@ class Coffee::Private
 public:
     Private()
     {
+    }
+
+    void stats(Bot* bot)
+    {
+        for (const auto& u : m_stats)
+        {
+            bot->message(QString("%1 has had %2 cups of coffee and has eaten %3 cookies.").arg(u.first).arg(u.second.m_coffee).arg(u.second.m_cookie));
+        }
     }
 
     int cookies() const { return m_cookiejar; }
@@ -37,7 +46,7 @@ public:
         }
         else
         {
-            m_stats.insert(user, CoffeeStats{1,0});
+            m_stats.insert(user, CoffeeStats{1,0,0});
             return 1;
         }
     }
