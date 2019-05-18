@@ -62,12 +62,14 @@ much call for that outside of `~quit`).
 
 Commands related to operator status, available to all:
 
- - `~quatbot ops` Lists current operators.
+ - `~quatbot ops status` Lists current operators.
  
 Commands related to operator status, only available to the **operator**:
 
- - `~quatbot op` Add people to the list of operators.
- - `~quatbot deop` Remove people from the list of operators.
+ - `~quatbot ops add <name..>` Add people to the list of operators.
+   You can use `+` or `op` as synonyms for `add`.
+ - `~quatbot ops remove <name..>` Remove people from the list of operators.
+   You can use `-` or `deop` as synonyms for `remove`.
 
  
 ### Commands - Logging

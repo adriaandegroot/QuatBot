@@ -110,66 +110,27 @@ void BasicCommands::handleCommand(const CommandArgs& l)
         message(cowsay(l.args.join(' ')));
     }
 #endif
-    else if (l.command == QStringLiteral("op"))
-    {
-        if (m_bot->checkOps(l))
-        {
-            if (l.args.count() > 0) 
-            {
-                for (const auto& u : l.args)
-                {
-                    QString user = m_bot->userLookup(u);
-                    if (user.isEmpty())
-                    {
-                        continue;
-                    }
-                    if (m_bot->setOps(user, true))
-                    {
-                        message(QString("%1 is now an operator").arg(user));
-                    }
-                    else
-                    {
-                        message(QString("%1 failed.").arg(displayCommand("op")));
-                    }
-                }
-            }
-            else
-            {
-                message(QString("Usage: %1 <userid>").arg(displayCommand("op")));
-            }
-        }
-    }
     else if (l.command == QStringLiteral("ops"))
     {
-        message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
-    }
-    else if (l.command == QStringLiteral("deop"))
-    {
-        if (m_bot->checkOps(l))
+        if (l.args.count() < 1)
         {
-            if (l.args.count() > 0) 
-            {
-                for (const auto& u : l.args)
-                {
-                    QString user = m_bot->userLookup(u);
-                    if (user.isEmpty())
-                    {
-                        continue;
-                    }
-                    if (m_bot->setOps(user, false))
-                    {
-                        message(QString("%1 is no longer an operator").arg(user));
-                    }
-                    else
-                    {
-                        message(QString("%1 failed.").arg(displayCommand("deop")));
-                    }
-                }
-            }
-            else
-            {
-                message(QString("Usage: %1 <userid>").arg(displayCommand("deop")));
-            }
+            message(OpsUsage{});
+        }
+        else if ((l.args[0] == "?") || (l.args[0] == "status"))
+        {
+            message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
+        }
+        else if ((l.args[0] == "+") || (l.args[0] == "add") || (l.args[0] == "op"))
+        {
+            opsChange(l, true);
+        }
+        else if ((l.args[0] == "-") || (l.args[0] == "remove") || (l.args[0] == "deop"))
+        {
+            opsChange(l, false);
+        }
+        else
+        {
+            message(OpsUsage{});
         }
     }
     else if (l.command == QStringLiteral("quit"))
@@ -229,6 +190,63 @@ void QuatBot::BasicCommands::handleMessage(const QMatrixClient::RoomMessageEvent
 {
     m_lastMessageTime = event->timestamp().time();
     m_messageCount++;
+}
+
+void BasicCommands::opsChange(const CommandArgs& cmd, bool enable)
+{
+    if (m_bot->checkOps(cmd))
+    {
+        if (cmd.args.count() > 1) 
+        {
+            bool first = true;
+            for (const auto& u : cmd.args)
+            {
+                if (first)
+                {
+                    // Skip the first item in the list, since that is just
+                    // the operation (+, -, ..) being performed. It has 
+                    // already been interpreted to provide the value of
+                    // parameter enable.
+                    first = false;
+                    continue;
+                }
+                
+                QString user = m_bot->userLookup(u);
+                if (user.isEmpty())
+                {
+                    message(QString("No such user '%1' when changing operators.").arg(u));
+                    continue;
+                }
+                if (m_bot->setOps(user, enable))
+                {
+                    if (!enable)
+                    {
+                        // Successfully disabled ops mode
+                        message(QString("%1 is no longer an operator").arg(user));
+                    }
+                    else
+                    {
+                        message(QString("%1 is now an operator").arg(user));
+                    }
+
+                }
+                else
+                {
+                    message(QString("Changing operator status of %1 failed.").arg(user));
+                }
+            }
+        }
+        else
+        {
+            message(OpsUsage{});
+        }
+    }
+}
+
+void BasicCommands::message(OpsUsage)
+{
+    message(QString("Usage: %1 ops status").arg(displayCommand()));
+    message(QString("Usage: %1 ops <add|op|+|remove|deop|-> <name..>").arg(displayCommand()));
 }
 
 }

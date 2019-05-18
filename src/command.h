@@ -25,8 +25,17 @@ public:
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
+    
+protected:
+    using Watcher::message;
+    struct OpsUsage {};
+    void message(OpsUsage);
 
+    
 private:
+    /// @brief Set or unset ops mode for the named users.
+    void opsChange(const CommandArgs&, bool enable);
+    
     QTime m_lastMessageTime;
     int m_messageCount = 0;
     int m_commandCount = 0;
