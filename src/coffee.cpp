@@ -135,9 +135,16 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
     }
     if (cmd.command == QStringLiteral("give"))
     {
+        const auto& realUsers = m_bot->userIds();
+        
         auto& user = d->find(cmd.user);
         for (const auto& other : cmd.args)
         {
+            if (!realUsers.contains(other))
+            {
+                message(QString("%1's not here, Dave.").arg(other));
+                continue;
+            }
             auto& otheruser = d->find(other);
             if (otheruser.m_user == user.m_user)
             {
