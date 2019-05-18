@@ -248,7 +248,7 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
             int week = QDate::currentDate().weekNumber(&year);
             logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
             logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
-            logCommand.args = QStringList{};
+            logCommand.args = QStringList{"?quiet"};
             w->handleCommand(logCommand);
         }
     }

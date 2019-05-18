@@ -175,7 +175,7 @@ void Logger::Private::report(Bot* bot)
     }
     else if (m_lines > 0)
     {
-        bot->message(QString("(log) Logging is on, %1 lines.").arg(m_lines));
+        bot->message(QString("(log) Logging to %1, %2 lines.").arg(m_file->fileName()).arg(m_lines));
     }
     else
         bot->message(QString("(log) Logging to %1").arg(m_file->fileName()));
@@ -232,16 +232,36 @@ void Logger::handleCommand(const CommandArgs& cmd)
     {
         if (m_bot->checkOps(cmd))
         {
-            d->open(cmd.args.count() > 0 ? cmd.args[0] : cmd.id);
+            bool quiet = false;
+            int argIndex = 0;
+            if ((cmd.args.count() > 0) && cmd.args.constFirst() == "?quiet")
+            {
+                quiet = true;
+                argIndex = 1;
+            }
+            d->open(cmd.args.count() > argIndex ? cmd.args[argIndex] : cmd.id);
             d->log(QString("Log started %1.").arg(QDateTime::currentDateTime().toString()));
             d->flush();
+            if (!quiet)
+            {
+                d->report(m_bot);
+            }
         }
     }
     else if (cmd.command == "off")
     {
         if (m_bot->checkOps(cmd))
         {
+            bool quiet = false;
+            if ((cmd.args.count() > 0) && cmd.args.constFirst() == "?quiet")
+            {
+                quiet = true;
+            }
             d->close();
+            if (!quiet)
+            {
+                d->report(m_bot);
+            }
         }
     }
     else if (cmd.command == "status")
