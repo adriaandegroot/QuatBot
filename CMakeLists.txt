@@ -20,6 +20,7 @@ find_package(QMatrixClient REQUIRED)
 
 add_executable(quatbot
     src/main.cpp
+    src/coffee.cpp
     src/command.cpp
     src/logger.cpp
     src/meeting.cpp
@@ -27,7 +28,7 @@ add_executable(quatbot
     src/watcher.cpp
 )
 target_link_libraries(quatbot
-    PUBLIC 
+    PUBLIC
         QMatrixClient  # It pulls in Qt5 bits
 )
 
