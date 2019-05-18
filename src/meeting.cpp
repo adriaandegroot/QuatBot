@@ -69,15 +69,17 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             m_state = State::RollCall;
             m_breakouts.clear();
             m_participantsDone.clear();
-            if (m_bot->botUser() != cmd.user)
-            {
-                // Don't rollcall the bot itself
-                m_participantsDone.insert(m_bot->botUser());
-            }
             m_participants.clear();
             m_participants.append(cmd.user);
             m_chair = cmd.user;
             m_current.clear();
+
+            if (m_bot->botUser() != m_chair)
+            {
+                // Don't rollcall the bot itself
+                m_participantsDone.insert(m_bot->botUser());
+            }
+
             message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
             m_waiting.start(60000);  // one minute until reminder
         }
@@ -99,6 +101,11 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 m_state = State::InProgress;
                 status();
                 m_participantsDone.clear();
+                if (m_bot->botUser() != m_chair)
+                {
+                    m_participants.removeAll(m_bot->botUser());
+                    m_participantsDone.insert(m_bot->botUser());
+                }
             }
             doNext();
             if (m_state == State::None)
@@ -185,7 +192,7 @@ void Meeting::doNext()
     if (m_participants.count() < 1)
     {
         m_state = State::None;
-        shortStatus();
+        message("That was the last one! We're done.");
         if (m_breakouts.count() > 0)
         {
             for(const auto& b : m_breakouts)
@@ -216,16 +223,16 @@ void Meeting::shortStatus() const
     switch (m_state)
     {
         case State::None:
-            message(QString("(meeting) No meeting in progress."));
+            message(QString("No meeting in progress."));
             return;
         case State::RollCall:
-            message(QString("(meeting) Doing the rollcall."));
+            message(QString("Doing the rollcall."));
             return;
         case State::InProgress:
-            message(QString("(meeting) Meeting in progress."));
+            message(QString("Meeting in progress."));
             return;
     }
-    message(QString("(meeting) The meeting is in disarray."));
+    message(QString("The meeting is in disarray."));
 }
 
 void Meeting::status() const
@@ -233,7 +240,7 @@ void Meeting::status() const
     shortStatus();
     if (m_state != State::None)
     {
-        message(QString("(meeting) There are %1 participants.").arg(m_participants.count()));
+        message(QString("There are %1 participants.").arg(m_participants.count()));
     }
 }
 
@@ -264,7 +271,7 @@ void Meeting::timeout()
 {
     if (m_state == State::RollCall)
     {
-        QStringList noResponse{"Roll-call for"};
+        QStringList noResponse{"Roll-call reminder for"};
         
         for (const auto& u : m_bot->userIds())
         {
