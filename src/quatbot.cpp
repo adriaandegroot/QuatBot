@@ -100,10 +100,7 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
     connect(joinRoom, &QMatrixClient::BaseJob::success,
         [this, joinRoom]()
         {
-            m_watchers.reserve(3);
-            m_watchers.append(new BasicCommands(this));
-            m_watchers.append(new Logger(this));
-            m_watchers.append(new Meeting(this));
+            setupWatchers();
             
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
@@ -183,9 +180,16 @@ void Bot::addedMessages(int from, int to)
                     }
                 }
                 
-                // Special case: unhandled ones go to BasicCommands
-                // which handles all the "rest" items.
-                if (!handled)
+                if (handled) 
+                {
+                    continue;
+                }
+
+                if (m_ambiguousCommands.contains(cmd.command))
+                {
+                    message(QString("'%1' is ambiguous. Please use a module command.").arg(cmd.command));
+                }
+                else
                 {
                     for(const auto& w : m_watchers)
                     {
@@ -196,10 +200,10 @@ void Bot::addedMessages(int from, int to)
                             break;
                         }
                     }
-                }
                 
-                if (!handled)
-                    message(QString("I don't understand '%1'.").arg(cmd.command));
+                    if (!handled)
+                        message(QString("I don't understand '%1'.").arg(cmd.command));
+                }
             }
         }
     }
@@ -274,6 +278,30 @@ Watcher* Bot::getWatcher(const QString& name)
         if (w->moduleName() == name)
             return w;
     return nullptr;
+}
+
+void Bot::setupWatchers()
+{
+    m_watchers.reserve(3);
+    m_watchers.append(new BasicCommands(this));
+    m_watchers.append(new Logger(this));
+    m_watchers.append(new Meeting(this));
+    
+    QSet<QString> commands;
+    for (const auto& w : m_watchers)
+    {
+        for (const auto& cmd : w->moduleCommands())
+        {
+            if (commands.contains(cmd))
+            {
+                m_ambiguousCommands.insert(cmd);
+            }
+            else
+            {
+                commands.insert(cmd);
+            }
+        }
+    }
 }
 
 }  // namespace

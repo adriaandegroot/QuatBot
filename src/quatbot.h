@@ -112,12 +112,16 @@ protected:
      */
     bool setOps(const QString& user, bool op);
     
+    /// @brief Instantiate the watchers for this bot
+    void setupWatchers();
+    
 private:
     QMatrixClient::Room* m_room = nullptr;
     QMatrixClient::Connection& m_conn;
     
     QVector<Watcher*> m_watchers;
     QSet<QString> m_operators;
+    QSet<QString> m_ambiguousCommands;
     
     QString m_roomName;
     bool m_newlyConnected = true;
