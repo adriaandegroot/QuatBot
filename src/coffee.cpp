@@ -109,7 +109,7 @@ const QString& Coffee::moduleName() const
 
 const QStringList& Coffee::moduleCommands() const
 {
-    static const QStringList commands{"coffee", "cookie", "status"};
+    static const QStringList commands{"coffee", "cookie", "status", "lart"};
     return commands;
 }
 
@@ -195,6 +195,10 @@ void Coffee::handleCommand(const CommandArgs& cmd)
         {
             message(QStringList{cmd.user, "has a nice cup of coffee."});
         }
+    }
+    else if (cmd.command == QStringLiteral("lart"))
+    {
+        message(QString("%1 is eaten by a large trout.").arg(cmd.user));
     }
 }
 
