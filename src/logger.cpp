@@ -188,9 +188,10 @@ Logger::~Logger()
 	delete d;
 }
 
-QString Logger::moduleName() const
+const QString& Logger::moduleName() const
 {
-    return QStringLiteral("log");
+    static const QString name(QStringLiteral("log"));
+    return name;
 }
 
 void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)

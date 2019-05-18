@@ -71,9 +71,10 @@ BasicCommands::~BasicCommands()
 {
 }
 
-QString BasicCommands::moduleName() const
+const QString& BasicCommands::moduleName() const
 {
-    return QString();
+    static const QString name;
+    return name;
 }
 
 static QString munge(const QTime& t)

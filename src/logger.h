@@ -24,7 +24,7 @@ public:
     Logger(Bot* parent);
     virtual ~Logger() override;
 
-    virtual QString moduleName() const override;
+    virtual const QString& moduleName() const override;
     
     virtual void handleMessage(const QString&) override;
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;

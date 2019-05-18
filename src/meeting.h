@@ -23,7 +23,7 @@ public:
     Meeting(Bot* parent);
     virtual ~Meeting() override;
     
-    virtual QString moduleName() const override;
+    virtual const QString& moduleName() const override;
     
     virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;

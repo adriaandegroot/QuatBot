@@ -26,9 +26,10 @@ Meeting::~Meeting()
 {
 }
 
-QString Meeting::moduleName() const
+const QString& Meeting::moduleName() const
 {
-    return QStringLiteral("meeting");
+    static const QString name(QStringLiteral("meeting"));
+    return name;
 }
 
 void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)

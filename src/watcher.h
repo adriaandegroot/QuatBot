@@ -104,7 +104,7 @@ public:
      * This is used to identify which commands go where; except for
      * the one special subclass BasicCommands, this must not be empty.
      */
-    virtual QString moduleName() const = 0;
+    virtual const QString& moduleName() const = 0;
     
     /** @brief Handle "virtual" message sent by the bot
      * 
