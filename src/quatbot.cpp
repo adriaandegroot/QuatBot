@@ -61,6 +61,13 @@ QStringList Bot::userIds()
     return l;
 }
 
+QString Bot::botUser() const
+{
+    return m_conn.userId();
+}
+
+
+
 static int instance_count = 0;
 
 static void bailOut(int timeout=0)

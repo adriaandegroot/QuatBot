@@ -69,6 +69,11 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             m_state = State::RollCall;
             m_breakouts.clear();
             m_participantsDone.clear();
+            if (m_bot->botUser() != cmd.user)
+            {
+                // Don't rollcall the bot itself
+                m_participantsDone.insert(m_bot->botUser());
+            }
             m_participants.clear();
             m_participants.append(cmd.user);
             m_chair = cmd.user;

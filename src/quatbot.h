@@ -84,6 +84,8 @@ public:
     QString userLookup(const QString& userName);
     /// @brief All the user ids from the room
     QStringList userIds();
+    /// @brief User id of the bot user itself
+    QString botUser() const;
 
     /// @brief Sends a message to the room. @p l is joined with spaces.
     void message(const QStringList& l);
