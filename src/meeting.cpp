@@ -195,6 +195,7 @@ void Meeting::doNext()
         message("That was the last one! We're done.");
         if (m_breakouts.count() > 0)
         {
+            m_bot->message(Bot::Flush{});
             for(const auto& b : m_breakouts)
             {
                 message(QString("Breakout: %1").arg(b));
