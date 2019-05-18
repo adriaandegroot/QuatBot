@@ -101,6 +101,8 @@ void Logger::Private::open(const QString& name)
     }
     m_stream = t;
     m_lines = 0;
+    
+    qDebug() << "Logging to" << m_file->fileName();
 }
 
 void Logger::Private::flush()
@@ -125,7 +127,7 @@ static void logX(QTextStream& s, QString timestamp, QString sender, QString mess
     
     // Just the HH:mm:ss
     s << timestamp.right(8).leftJustified(8)
-        << ' ' << qSetFieldWidth(12) << sender << qSetFieldWidth(-1) << '\t';
+        << ' ' << sender.leftJustified(12) << '\t';
     if (message.contains('\n'))
     {
         QStringList parts = message.split('\n');
@@ -152,7 +154,7 @@ void Logger::Private::log(const QString& s)
     if (m_stream)
     {
         ++m_lines;
-        logX(*m_stream, QString(), QString(), s);
+        logX(*m_stream, QString(), QStringLiteral("*BOT*"), s);
     }
 }
 
