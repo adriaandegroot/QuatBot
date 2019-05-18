@@ -238,7 +238,7 @@ void Logger::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(QString("Usage: %1 <on|off|status>").arg(displayCommand()));
+        message(Usage{});
         statusReport = false;
     }
     

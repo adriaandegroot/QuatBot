@@ -167,7 +167,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(QString("Usage: %1 <status|rollcall|next|breakout|skip|bump|done>").arg(displayCommand()));
+        message(Usage{});
     }
 }
 

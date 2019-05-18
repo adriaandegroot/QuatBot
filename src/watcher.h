@@ -141,6 +141,11 @@ protected:
     void message(const QString& s) const { m_bot->message(s); }
     /// @brief Convenience for sending a message to the room
     void message(const QStringList& l) const { m_bot->message(l); }
+
+    /// @brief Tag class
+    struct Usage {};
+    /// @brief Print a usage message
+    void message(Usage) { message(QString("Usage: %1 <%2>").arg(displayCommand(), this->moduleCommands().join('|'))); }
     
     Bot* m_bot;
 };

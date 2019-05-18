@@ -191,6 +191,10 @@ void BasicCommands::handleCommand(const CommandArgs& l)
             .arg(m_commandCount)
         );
     }
+    else
+    {
+        message(Usage{});
+    }
     m_commandCount++;
 }
 
