@@ -8,6 +8,7 @@
 #include "coffee.h"
 
 #include <QMap>
+#include <QTimer>
 
 namespace QuatBot
 {
@@ -34,6 +35,8 @@ class Coffee::Private
 public:
     Private()
     {
+        QObject::connect(&m_refill, &QTimer::timeout, [this](){ this->addCookie(); });
+        m_refill.start(3579100);  // every hour, -ish
     }
 
     void stats(Bot* bot)
@@ -72,9 +75,18 @@ public:
         return false;
     }
     
+    void addCookie()
+    {
+        if (m_cookiejar < 12)
+        {
+            m_cookiejar++;
+        }
+    }
+    
 private:
     int m_cookiejar = 12;  // a dozen cookies by default
     QMap<QString, CoffeeStats> m_stats;
+    QTimer m_refill;
 };
 
 
