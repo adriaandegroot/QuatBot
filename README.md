@@ -27,19 +27,30 @@ The bot is controlled from the Matrix chat by text commands. Each command
 is preceded by the **command-character**. By default this is `~` but that
 can be changed.
 
+All of the commands start with the *module name* that is responsible
+for the command. By default, there are three modules: *quatbot*, *log*
+and *meeting*. Each module understands a collection of **sub**commands
+(e.g. the *quatbot* module understands subcommand *echo*). If a subcommand
+is not ambiguous, you can leave out the module name and write the subcommand
+as a command. That is, `~echo` is the same as `~quatbot echo` as long
+as no other module defines an *echo* subcommand.
+
 ### Commands - General
 
 Commands that are general, not tied to the meeting:
 
- - `~echo` The bot will reply with whatever follows on the same line.
- - `~fortune` The bot will reply with a random fortune (from `/usr/bin/fortune`).
- - `~cowsay` The bot will reply with the output of `/usr/local/bin/cowsay`.
+ - `~quatbot echo` The bot will reply with whatever follows on the same line.
+ - `~quatbot fortune` The bot will reply with a random fortune.
+ - `~quatbot cowsay` The bot will reply with wisdom from cows.
    (*Optional*, may be disabled at build-time).
- - `~status` The bot will reply with some internal counters.
+ - `~quatbot status` The bot will reply with some internal counters **and**
+   the status message from each other module.
+ - `~quatbot help` The bot will reply with a list of modules, or use 
+   `~quatbot help <name..>` for a list of commands for the named modules.
 
 Commands that are general, but only available to the bot's **operator**:
 
- - `~quit` Leave the room.
+ - `~quatbot quit` Leave the room.
  
  
 ### Commands - Operators
@@ -51,12 +62,12 @@ much call for that outside of `~quit`).
 
 Commands related to operator status, available to all:
 
- - `~ops` Lists current operators.
+ - `~quatbot ops` Lists current operators.
  
 Commands related to operator status, only available to the **operator**:
 
- - `~op` Add people to the list of operators.
- - `~deop` Remove people from the list of operators.
+ - `~quatbot op` Add people to the list of operators.
+ - `~quatbot deop` Remove people from the list of operators.
 
  
 ### Commands - Logging
