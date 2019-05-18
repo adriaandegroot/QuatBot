@@ -87,7 +87,9 @@ Commands related to logging, only available to the **operator**:
  - `~log on` Switches on logging. Starts a log with a filename based on
    the message ID. Tells the room that logging is on and where the log
    is stored (although this is a path on the local machine, so useless
-   to most people).
+   to most people). You can add `?quiet` to suppress the message
+   to the room. You can also add a filename, which is massaged and used
+   on the host where the bot runs.
  - `~log off` Stops logging and saves the file.
  
 
