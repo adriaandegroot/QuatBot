@@ -279,6 +279,7 @@ void Meeting::timeout()
     {
         message(QStringList{m_current, "are you with us?"});
     }
+    m_bot->message(Bot::Flush{});
 }
 
 }  // namespace
