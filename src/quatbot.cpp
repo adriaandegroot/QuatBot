@@ -302,6 +302,10 @@ void Bot::setupWatchers()
             }
         }
     }
+    
+    // Except that the "basic commands" are always interpreted by basic (because it's first)
+    // so those are not considered ambiguous.
+    m_ambiguousCommands.subtract(QSet<QString>::fromList(m_watchers[0]->moduleCommands()));
 }
 
 }  // namespace
