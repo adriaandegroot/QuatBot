@@ -84,7 +84,7 @@ const QStringList& BasicCommands::moduleCommands() const
         "cowsay",
 #endif
         "op","deop","ops",
-        "status","quit"};
+        "help", "status","quit"};
     return commands;
 }
 
@@ -196,6 +196,25 @@ void BasicCommands::handleCommand(const CommandArgs& l)
             if (watcher && (watcher->moduleName() != moduleName()) && watcher->moduleCommands().contains("status"))
             {
                 watcher->handleCommand(l);
+            }
+        }
+    }
+    else if (l.command == QStringLiteral("help"))
+    {
+        if (l.args.isEmpty())
+        {
+            message(QStringList{"The following modules are available:"} << m_bot->watcherNames());
+            message("Use help <modulename..> to see what commands are available.");
+        }
+        else
+        {
+            for (const auto& w : l.args)
+            {
+                auto* watcher = m_bot->getWatcher(w);
+                if (watcher)
+                {
+                    message(QStringList{QString("Module %1 understands:").arg(watcher->moduleName())} << watcher->moduleCommands());
+                }
             }
         }
     }
