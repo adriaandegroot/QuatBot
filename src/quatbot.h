@@ -87,8 +87,19 @@ public:
 
     /// @brief Sends a message to the room. @p l is joined with spaces.
     void message(const QStringList& l);
-    /// @brief Sends a message to the room. @p l is sent as plain text.
+    /** @brief Sends a message to the room. @p l is sent as plain text.
+     * 
+     * Multiple messages may be sent in response to a single command.
+     * The bot main loop collects them and calls message(Flush{})
+     * to send the collected messages are one Matrix message. If a module
+     * needs to **explicitly** make sure that a message is sent as a
+     * separate response, call flush explicitly.
+     */
     void message(const QString& s);
+    
+    struct Flush{}; ///< Tag class
+    /// @brief Flushes the message queue.
+    void message(Flush);
     
     /** @brief Get the watcher with the given @p name
      * 
@@ -124,6 +135,7 @@ private:
     QSet<QString> m_operators;
     QSet<QString> m_ambiguousCommands;
     
+    QStringList m_accumulatedMessages;
     QString m_roomName;
     bool m_newlyConnected = true;
 };

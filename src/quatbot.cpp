@@ -146,6 +146,17 @@ void Bot::baseStateLoaded()
         << "topic=" << m_room->topic();
 }
     
+/// @brief RAII helper to always flush bot messages
+class Flusher
+{
+public:
+    Flusher(Bot* b): m_b(b) {}
+    ~Flusher() { m_b->message(Bot::Flush{}); }
+
+private:
+    Bot* m_b;
+};
+
 void Bot::addedMessages(int from, int to)
 {
     qDebug() << "Room messages" << from << '-' << to;
@@ -168,6 +179,7 @@ void Bot::addedMessages(int from, int to)
             CommandArgs cmd(event);
             if (cmd.isValid())
             {
+                Flusher f(this);
                 bool handled = false;
                 for(const auto& w : m_watchers)
                 {
@@ -202,7 +214,9 @@ void Bot::addedMessages(int from, int to)
                     }
                 
                     if (!handled)
+                    {
                         message(QString("I don't understand '%1'.").arg(cmd.command));
+                    }
                 }
             }
         }
@@ -266,12 +280,23 @@ void Bot::message(const QString& s)
 {
     if (!m_room)
         return;
-    m_room->postPlainText(s);
+    if (s.isEmpty())
+        return;
+    m_accumulatedMessages.append(s);
     for (const auto& p : m_watchers)
         p->handleMessage(s);
     qDebug() << "**BOT**" << s;
 }
 
+void Bot::message(Bot::Flush)
+{
+    if (!m_accumulatedMessages.isEmpty())
+    {
+        m_room->postPlainText(m_accumulatedMessages.join('\n'));
+        m_accumulatedMessages.clear();
+    }
+}
+        
 Watcher* Bot::getWatcher(const QString& name)
 {
     for (const auto& w : m_watchers)
