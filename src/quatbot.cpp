@@ -21,6 +21,9 @@
 #include <csapi/joining.h>
 #include <events/roommessageevent.h>
 
+#ifdef ENABLE_COFFEE
+#include "coffee.h"
+#endif
 #include "command.h"
 #include "logger.h"
 #include "meeting.h"
@@ -327,10 +330,13 @@ QStringList Bot::watcherNames() const
 
 void Bot::setupWatchers()
 {
-    m_watchers.reserve(3);
+    m_watchers.reserve(6);
     m_watchers.append(new BasicCommands(this));
     m_watchers.append(new Logger(this));
     m_watchers.append(new Meeting(this));
+#ifdef ENABLE_COFFEE
+    m_watchers.append(new Coffee(this));
+#endif
     
     QSet<QString> commands;
     for (const auto& w : m_watchers)
