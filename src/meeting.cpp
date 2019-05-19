@@ -122,9 +122,8 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
         {
-            for (const auto& u : cmd.args)
+            for (const auto& user : m_bot->userLookup(cmd.args))
             {
-                QString user = m_bot->userLookup(u);
                 if (!user.isEmpty())
                 {
                     m_participants.removeAll(user);
@@ -142,9 +141,8 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
         {
-            for (const auto& u : cmd.args)
+            for (const auto& user : m_bot->userLookup(cmd.args))
             {
-                QString user = m_bot->userLookup(u);
                 if (!user.isEmpty())
                 {
                     m_participants.removeAll(user);
@@ -245,6 +243,10 @@ void Meeting::status() const
     if (m_state != State::None)
     {
         l << QString("There are %1 participants.").arg(m_participants.count());
+    }
+    if ((m_state == State::InProgress) && !m_current.isEmpty())
+    {
+        l << QString("It is %1 's turn.").arg(m_current);
     }
     message(l);
 }
