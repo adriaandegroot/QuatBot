@@ -16,7 +16,8 @@ namespace QuatBot
     
 struct Meeting::Private
 {
-    explicit Private() :
+    explicit Private(Bot* bot) :
+        m_bot(bot),
         m_state(State::None)
     {
         QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
@@ -34,8 +35,8 @@ struct Meeting::Private
         m_participants.append(m_chair);
     }
 
-    /// @brief Start the meeting
-    void start(Bot* bot, const QString& chair)
+    /// @brief Start the meeting (roll-call)
+    void start(const QString& chair)
     {
         m_state = State::RollCall;
         m_breakouts.clear();
@@ -45,14 +46,26 @@ struct Meeting::Private
         m_chair = chair;
         m_current.clear();
 
-        if (bot->botUser() != m_chair)
+        if (m_bot->botUser() != m_chair)
         {
             // Don't rollcall the bot itself
-            m_participantsDone.insert(bot->botUser());
+            m_participantsDone.insert(m_bot->botUser());
         }
         m_waiting.start(60000);  // one minute until reminder
     }
 
+    /// @brief Start the meeting (main part)
+    void startProper()
+    {
+        m_state = State::InProgress;
+        m_participantsDone.clear();
+        if (m_bot->botUser() != m_chair)
+        {
+            m_participants.removeAll(m_bot->botUser());
+            m_participantsDone.insert(m_bot->botUser());
+        }
+    }
+    
     bool isChair(const CommandArgs& cmd) { return cmd.user == m_chair; }
 
     void skip(const QString& user)
@@ -68,6 +81,45 @@ struct Meeting::Private
         m_participants.insert(0, user);
     }
     
+    void next()
+    {
+        if (m_state != State::InProgress)
+        {
+            return;
+        }
+        if (m_participants.count() < 1)
+        {
+            m_state = State::None;
+            m_bot->message("That was the last one! We're done.");
+            if (m_breakouts.count() > 0)
+            {
+                m_bot->message(Bot::Flush{});
+                for(const auto& b : m_breakouts)
+                {
+                    m_bot->message(QString("Breakout: %1").arg(b));
+                }
+            }
+            m_waiting.stop();
+            return;
+        }
+        
+        m_current = m_participants.takeFirst();
+        m_participantsDone.insert(m_current);
+        
+        if (m_participants.count() > 0)
+        {
+            m_bot->message(QString("%1, you're up (after that, %2).").arg(m_current, m_participants.first()));
+        }
+        else
+        {
+            m_bot->message(QString("%1, you're up (after that, we're done!).").arg(m_current));
+        }
+        m_waiting.start(30000); // half a minute to reminder
+    }
+    
+    void timeout();
+    
+    Bot* m_bot;
     State m_state;
     QList<QString> m_participants;
     QSet<QString> m_participantsDone;
@@ -80,7 +132,7 @@ struct Meeting::Private
 
 Meeting::Meeting(Bot* bot) :
     Watcher(bot),
-    d(new Private)
+    d(new Private(bot))
 {
 }
     
@@ -123,7 +175,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     {
         if (!d->hasStarted())
         {
-            d->start(m_bot, cmd.user);
+            d->start(cmd.user);
             enableLogging(cmd, true);
             message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
         }
@@ -140,19 +192,13 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
-            if (m_state == State::RollCall)
+            if (d->m_state == State::RollCall)
             {
-                m_state = State::InProgress;
+                d->startProper();
                 status();
-                m_participantsDone.clear();
-                if (m_bot->botUser() != m_chair)
-                {
-                    m_participants.removeAll(m_bot->botUser());
-                    m_participantsDone.insert(m_bot->botUser());
-                }
             }
-            doNext();
-            if (m_state == State::None)
+            d->next();
+            if (!d->hasStarted())
             {
                 enableLogging(cmd, false);
             }
@@ -196,14 +242,14 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("breakout"))
     {
-        if (!(m_state == State::InProgress))
+        if (!(d->m_state == State::InProgress))
         {
             shortStatus();
         }
         else
         {
-            m_breakouts.append(cmd.args.join(' '));
-            message(QString("Registered breakout '%1'.").arg(m_breakouts.last()));
+            QString name = d->breakout(cmd.args);
+            message(QString("Registered breakout '%1'.").arg(name));
         }
     }
     else if  (cmd.command == QStringLiteral("done"))
@@ -219,43 +265,6 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     {
         message(Usage{});
     }
-}
-
-void Meeting::doNext()
-{
-    if (m_state != State::InProgress)
-    {
-        shortStatus();
-        return;
-    }
-    if (m_participants.count() < 1)
-    {
-        m_state = State::None;
-        message("That was the last one! We're done.");
-        if (m_breakouts.count() > 0)
-        {
-            m_bot->message(Bot::Flush{});
-            for(const auto& b : m_breakouts)
-            {
-                message(QString("Breakout: %1").arg(b));
-            }
-        }
-        m_waiting.stop();
-        return;
-    }
-    
-    m_current = m_participants.takeFirst();
-    m_participantsDone.insert(m_current);
-    
-    if (m_participants.count() > 0)
-    {
-        message(QString("%1, you're up (after that, %2).").arg(m_current, m_participants.first()));
-    }
-    else
-    {
-        message(QString("%1, you're up (after that, we're done!).").arg(m_current));
-    }
-    m_waiting.start(30000); // half a minute to reminder
 }
 
 static QString _shortStatus(Meeting::State s)
@@ -274,20 +283,20 @@ static QString _shortStatus(Meeting::State s)
 
 void Meeting::shortStatus() const
 {
-    message(_shortStatus(m_state));
+    message(_shortStatus(d->m_state));
 }
 
 void Meeting::status() const
 {
     QStringList l{"(meeting)"};
-    l << _shortStatus(m_state);
-    if (m_state != State::None)
+    l << _shortStatus(d->m_state);
+    if (d->m_state != State::None)
     {
-        l << QString("There are %1 participants.").arg(m_participants.count());
+        l << QString("There are %1 participants.").arg(d->m_participants.count());
     }
-    if ((m_state == State::InProgress) && !m_current.isEmpty())
+    if ((d->m_state == State::InProgress) && !d->m_current.isEmpty())
     {
-        l << QString("It is %1 's turn.").arg(m_current);
+        l << QString("It is %1 's turn.").arg(d->m_current);
     }
     message(l);
 }
@@ -315,7 +324,7 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
 }
 
 
-void Meeting::timeout()
+void Meeting::Private::timeout()
 {
     if (m_state == State::RollCall)
     {
@@ -331,12 +340,12 @@ void Meeting::timeout()
         
         if (noResponse.count() > 1)
         {
-            message(noResponse);
+            m_bot->message(noResponse);
         }
     }
     else if (m_state == State::InProgress)
     {
-        message(QStringList{m_current, "are you with us?"});
+        m_bot->message(QStringList{m_current, "are you with us?"});
     }
     m_bot->message(Bot::Flush{});
 }

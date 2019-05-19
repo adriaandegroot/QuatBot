@@ -43,10 +43,6 @@ protected:
     void status() const;
     
     void enableLogging(const CommandArgs&, bool);
-    void doNext();
-    
-    /// @brief Called by timer, when someone is not responding.
-    void timeout();
     
 private:
     Private *d;
