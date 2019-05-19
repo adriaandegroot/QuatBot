@@ -198,23 +198,14 @@ void BasicCommands::opsChange(const CommandArgs& cmd, bool enable)
     {
         if (cmd.args.count() > 1) 
         {
-            bool first = true;
-            for (const auto& u : cmd.args)
+            CommandArgs a(cmd);
+            a.pop();
+            
+            for (const auto& user : m_bot->userLookup(a.args))
             {
-                if (first)
-                {
-                    // Skip the first item in the list, since that is just
-                    // the operation (+, -, ..) being performed. It has 
-                    // already been interpreted to provide the value of
-                    // parameter enable.
-                    first = false;
-                    continue;
-                }
-                
-                QString user = m_bot->userLookup(u);
                 if (user.isEmpty())
                 {
-                    message(QString("No such user '%1' when changing operators.").arg(u));
+                    message(QString("Unrecognized when changing operators.").arg(user));
                     continue;
                 }
                 if (m_bot->setOps(user, enable))
