@@ -126,6 +126,8 @@ public:
         return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), QStringLiteral("cookiejar"));
     }
     
+    static constexpr const qint32 MAGIC = 0xcafe;
+    
     void save() const
     {
         const auto [dataDirName, saveFileName] = dataLocation();
@@ -184,8 +186,23 @@ public:
         {
             QDataStream d(&saveFile);
             qint32 magic;
-            d >> magic;  // TODO: check magic
-            d >> magic;  // TODO: check version;
+            QDateTime when;
+            d >> magic;
+            if (magic != MAGIC)
+            {
+                qWarning() << "Save file" << saveFile.fileName() << "corrupt.";
+                return;
+            }
+            d >> magic >> when;
+            qDebug() << "Loading save file v" << magic <<"from" << when.toString();
+            if (magic == 1)
+            {
+                loadV1(d);
+            }
+            else
+            {
+                qWarning() << "Save file has unknown version" << magic;
+            }
         }
     }
 
@@ -210,7 +227,7 @@ private:
 
     void saveV1(QDataStream d) const
     {
-        d << qint32(0xcafe);  // Coffee!
+        d << qint32(MAGIC);   // Coffee!
         d << qint32(1);       // Version 1
         d << QDateTime::currentDateTime();  // When?
         
@@ -222,6 +239,10 @@ private:
         
         d << qint32(0) << qint32(0);
         d << QString("Koffiepot");
+    }
+    
+    void loadV1(QDataStream& d)
+    {
     }
     
     int m_cookiejar = 12;  // a dozen cookies by default
