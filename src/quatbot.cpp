@@ -30,6 +30,70 @@
 
 namespace QuatBot
 {
+QStringList splitUserName(const QString& s)
+{
+    QStringList l;
+    for (QString part : s.split(' ', QString::SkipEmptyParts))
+    {
+        QString shortPart = part.trimmed();
+        if (!shortPart.isEmpty())
+        {
+            l << shortPart;
+        }
+    }
+    return l;
+}
+        
+QStringList Bot::userLookup(const QStringList& users)
+{
+    QStringList ids;
+    
+    if (!m_room)
+        return ids;
+    
+    QMap<QString, QStringList> idToDisplayName;
+    for (const auto& u : m_room->users())
+    {
+        idToDisplayName.insert(u->id(), splitUserName(u->displayname(m_room)));
+    }
+    
+    int i = 0;
+    while (i < users.count())
+    {
+        QString accumulator = users[i];
+        if (accumulator.startsWith('@') && accumulator.contains(':'))
+        {
+            // Looks like an Id already
+            ids << accumulator;
+        }
+        else
+        {
+            for (auto it = idToDisplayName.constKeyValueBegin(); it != idToDisplayName.constKeyValueEnd(); ++it)
+            {
+                const auto [matrixId, userParts] = *it;
+                bool found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
+                for (int j = 0; j < userParts.count(); ++j)
+                {
+                    if (userParts[j] != users[i+j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    ids << matrixId;
+                    i += userParts.count() - 1;
+                    break;
+                }
+            }
+            // if there is no id found, skip this word
+        }
+        i++;
+    }
+    return ids;
+}
+    
 QString Bot::userLookup(const QString& userName)
 {
     if (!m_room)

@@ -82,6 +82,18 @@ public:
      * This method looks up a Matrix-id for the nicknames @p userName.
      */
     QString userLookup(const QString& userName);
+    /** @brief Looks up matrix ids based on expanded nicknames
+     * 
+     * When nicknames are used, they can contain spaces, and things
+     * rapidly become a real mess. Here, given a list of words, try
+     * to match those to Matrix Ids that are in the room.
+     * 
+     * Returns a list of plausible Matrix Ids for the given words.
+     * (in particular, the list of four words {adridg the bot [ade]}
+     * would return two Ids, with my current nicknames in use)
+     */
+    QStringList userLookup(const QStringList& users);
+    
     /// @brief All the user ids from the room
     QStringList userIds();
     /// @brief User id of the bot user itself
