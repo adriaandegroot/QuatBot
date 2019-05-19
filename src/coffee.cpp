@@ -323,7 +323,7 @@ void Coffee::handleMessage(const QMatrixClient::RoomMessageEvent*)
 {
 }
 
-void Coffee::handleSubCommand(const CommandArgs& cmd)
+void Coffee::handleCookieCommand(const CommandArgs& cmd)
 {
     if ((cmd.command == QStringLiteral("eat")) || cmd.command.isEmpty())
     {
@@ -337,7 +337,7 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
             message("You haz no cookiez :(");
         }
     }
-    if (cmd.command == QStringLiteral("give"))
+    else if (cmd.command == QStringLiteral("give"))
     {
         const auto& realUsers = m_bot->userIds();
         
@@ -369,6 +369,10 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
             }
         }
     }
+    else
+    {
+        message(QString("Cookies don't work that way."));
+    }
 }
 
 
@@ -386,7 +390,7 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     {
         CommandArgs sub(cmd);
         sub.pop();
-        handleSubCommand(sub);
+        handleCookieCommand(sub);
     }
     else if ((cmd.command == QStringLiteral("coffee")) || (cmd.command.isEmpty()))
     {

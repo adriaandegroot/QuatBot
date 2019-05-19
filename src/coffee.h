@@ -37,7 +37,7 @@ public:
     virtual void handleCommand(const CommandArgs&) override;
 
 protected:
-    void handleSubCommand(const CommandArgs&);
+    void handleCookieCommand(const CommandArgs&);
     
 private:
     Private* d;
