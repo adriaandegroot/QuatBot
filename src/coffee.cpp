@@ -49,6 +49,62 @@ public:
 
     int cookies() const { return m_cookiejar; }
     
+    /// @brief Give @p user a coffee; returns their coffee count
+    int coffee(const QString& user)
+    {
+        auto& c = find(user);
+        return ++c.m_coffee;
+    }
+
+    /// @brief Give @p user a cookie from the jar; returns true on success
+    bool giveCookie(const QString& user)
+    {
+        if (m_cookiejar > 0)
+        {
+            auto& c = find(user);
+            m_cookiejar--;
+            c.m_cookie++;
+            return true;
+        }
+        return false;
+    }
+    
+    /// @brief Give @p other one of @p user 's cookies; returns true on success
+    bool transferCookie(const QString& user, const QString& other)
+    {
+        auto& u = find(user);
+        auto& o = find(other);
+        
+        if (u.m_user == o.m_user)
+        {
+            return true;  // zero-sum
+        }
+        else
+        {
+            if (u.m_cookie > 0)
+            {
+                u.m_cookie--;
+                o.m_cookie++;
+                return true;
+            }
+            return false;
+        }
+    }
+    
+    /// @brief @p user eats a cookie; returns true on success
+    bool eatCookie(const QString& user)
+    {
+        auto& u = find(user);
+        if (u.m_cookie > 0)
+        {
+            u.m_cookie--;
+            u.m_cookieEated++;
+            return true;
+        }
+        return false;
+    }
+    
+private:
     CoffeeStats& find(const QString& user)
     {
         if (!m_stats.contains(user))
@@ -58,23 +114,7 @@ public:
         return m_stats[user];
     }
     
-    int coffee(const QString& user)
-    {
-        auto& c = find(user);
-        return ++c.m_coffee;
-    }
-
-    bool giveCookie(CoffeeStats& user)
-    {
-        if (m_cookiejar > 0)
-        {
-            m_cookiejar--;
-            user.m_cookie++;
-            return true;
-        }
-        return false;
-    }
-    
+    /// @brief Replenish the cookiejar
     void addCookie()
     {
         if (m_cookiejar < 12)
@@ -83,7 +123,6 @@ public:
         }
     }
     
-private:
     int m_cookiejar = 12;  // a dozen cookies by default
     QMap<QString, CoffeeStats> m_stats;
     QTimer m_refill;
@@ -125,11 +164,8 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
     if ((cmd.command == QStringLiteral("eat")) || cmd.command.isEmpty())
     {
         // Empty is when you just go ~cookie
-        auto& c = d->find(cmd.user);
-        if (c.m_cookie > 0)
+        if (d->eatCookie(cmd.user))
         {
-            c.m_cookie--;
-            c.m_cookieEated++;
             message(QString("**%1** nom nom nom").arg(cmd.user));
         }
         else
@@ -141,7 +177,6 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
     {
         const auto& realUsers = m_bot->userIds();
         
-        auto& user = d->find(cmd.user);
         for (const auto& other : cmd.args)
         {
             if (!realUsers.contains(other))
@@ -149,22 +184,19 @@ void Coffee::handleSubCommand(const CommandArgs& cmd)
                 message(QString("%1's not here, Dave.").arg(other));
                 continue;
             }
-            auto& otheruser = d->find(other);
-            if (otheruser.m_user == user.m_user)
+            if (other == cmd.user)
             {
                 message("It's a circular economy.");
             }
-            else if (user.m_cookie > 0)
+            else if (d->transferCookie(cmd.user, other))
             {
-                user.m_cookie--;
-                otheruser.m_cookie++;
-                message(QString("**%1** gives %2 a cookie.").arg(user.m_user, otheruser.m_user));
+                message(QString("**%1** gives %2 a cookie.").arg(cmd.user, other));
             }
             else
             {
-                if (d->giveCookie(otheruser))
+                if (d->giveCookie(other))
                 {
-                    message(QString("%2 gets a cookie from the jar.").arg(otheruser.m_user));
+                    message(QString("%2 gets a cookie from the jar.").arg(other));
                 }
                 else
                 {
