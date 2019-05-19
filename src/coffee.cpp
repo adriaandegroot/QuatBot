@@ -50,6 +50,7 @@ public:
     {
         QObject::connect(&m_refill, &QTimer::timeout, [this](){ this->addCookie(); });
         m_refill.start(3579100);  // every hour, -ish
+        load();
     }
 
     void stats(Bot* bot)
@@ -231,18 +232,59 @@ private:
         d << qint32(1);       // Version 1
         d << QDateTime::currentDateTime();  // When?
         
-        d << m_stats.count();   // Number of elements
+        d << qint32(m_stats.count());   // Number of elements
         for (const auto& u : m_stats)
         {
             d << u.m_user << qint32(u.m_coffee) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
         }
         
-        d << qint32(0) << qint32(0);
+        d << qint32(0) << qint32(MAGIC);
         d << QString("Koffiepot");
     }
     
     void loadV1(QDataStream& d)
     {
+        qint32 count;
+        
+        QString user;
+        qint32 coffee, cookie, eated;
+        
+        d >> count;
+        if ((count < 1) || (count > 1000))
+        {
+            qWarning() << "Unreasonable coffee-count" << count;
+            return;
+        }
+        
+        while(count>0)
+        {
+            d >> user >> coffee >> cookie >> eated;
+            auto& u = find(user);
+            u.m_coffee = coffee;
+            u.m_cookie = cookie;
+            u.m_cookieEated = eated;
+            
+            count--;
+        }
+        
+        // Check trailer?
+        d >> count;
+        if (count != 0)
+        {
+            qWarning() << "Trailer 1 corrupt.";
+            return;
+        }
+        d >> count;
+        if (count != MAGIC)
+        {
+            qWarning() << "Trailer 2 corrupt.";
+            return;
+        }
+        d >> user;
+        if (user != "Koffiepot")
+        {
+            qWarning() << "Trailer 3 corrupt.";
+        }
     }
     
     int m_cookiejar = 12;  // a dozen cookies by default
