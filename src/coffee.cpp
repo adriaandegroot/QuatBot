@@ -121,9 +121,15 @@ public:
         return false;
     }
 
+    const QPair<QString,QString> dataLocation() const
+    {
+        return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), QStringLiteral("cookiejar"));
+    }
+    
     void save() const
     {
-        QString dataDirName = QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation);
+        const auto [dataDirName, saveFileName] = dataLocation();
+        
         if (dataDirName.isEmpty())
         {
             static bool warned = false;
@@ -151,7 +157,6 @@ public:
             return;
         }
         
-        QString saveFileName = QStringLiteral("cookiejar");
         if (dataDir.exists(saveFileName))
         {
             // The cookie-jar isn't *SO* important that I'm going to do
@@ -168,6 +173,19 @@ public:
         {
             saveV1(QDataStream(&saveFile));
             saveFile.close();
+        }
+    }
+    
+    void load()
+    {
+        const auto [dataDirName, saveFileName] = dataLocation();
+        QFile saveFile(dataDirName + "/" + saveFileName);
+        if (saveFile.exists() && saveFile.open(QIODevice::ReadOnly))
+        {
+            QDataStream d(&saveFile);
+            qint32 magic;
+            d >> magic;  // TODO: check magic
+            d >> magic;  // TODO: check version;
         }
     }
 
