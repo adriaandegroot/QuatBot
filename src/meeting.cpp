@@ -13,6 +13,29 @@
 
 namespace QuatBot
 {
+
+struct Breakout
+{
+    QString id;
+    QString description;
+    QStringList participants;
+    
+    QString toString() const
+    {
+        QStringList parts{"Breakout:"};
+        parts << ( description.isEmpty() ? id : description );
+        if (participants.count() > 1)
+        {
+            parts << "Participants:" << participants;
+        }
+        else if (participants.count() == 1)
+        {
+            parts << "Chair:" << participants;
+        }
+        
+        return parts.join(' ');
+    }
+};
     
 struct Meeting::Private
 {
@@ -96,7 +119,7 @@ struct Meeting::Private
                 m_bot->message(Bot::Flush{});
                 for(const auto& b : m_breakouts)
                 {
-                    m_bot->message(QString("Breakout: %1").arg(b));
+                    m_bot->message(b.toString());
                 }
             }
             m_waiting.stop();
@@ -117,13 +140,44 @@ struct Meeting::Private
         m_waiting.start(30000); // half a minute to reminder
     }
     
+    void breakout(const QString& user, QStringList b)  // Copy since we're going to modify it
+    {
+        if (b.count() < 1)
+        {
+            m_bot->message(QString("Needs a breakout-Id"));
+            return;
+        }
+        
+        QString breakoutId = b.takeFirst();
+        QString description = b.join(' ');
+        
+        for (auto it = m_breakouts.begin(); it != m_breakouts.end(); ++it)
+        {
+            if (it->id == breakoutId)
+            {
+                it->participants.append(user);
+                return;
+            }
+        }
+        
+        // None matched, make new
+        m_breakouts.append({breakoutId, description, QStringList{user}});
+        
+        QStringList l{QString("Breakout '%1' is registered.").arg(breakoutId)};
+        if (!description.isEmpty())
+        {
+            l << description;
+        }
+        m_bot->message(l);
+    }
+    
     void timeout();
     
     Bot* m_bot;
     State m_state;
     QList<QString> m_participants;
     QSet<QString> m_participantsDone;
-    QList<QString> m_breakouts;
+    QList<Breakout> m_breakouts;
     QString m_chair;
     QString m_current;
     QTimer m_waiting;
@@ -248,8 +302,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else
         {
-            QString name = d->breakout(cmd.args);
-            message(QString("Registered breakout '%1'.").arg(name));
+            d->breakout(cmd.user, cmd.args);
         }
     }
     else if  (cmd.command == QStringLiteral("done"))
