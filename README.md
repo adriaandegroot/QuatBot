@@ -110,11 +110,12 @@ Commands related to meetings, available to all:
    naming every person in the room. Persons that reply to the roll-call
    (e.g. "here") are marked as present. After one minute, a repeat roll-call
    for those that have not yet responded is sent.
- - `~meeting breakout <id> <description>` Registers a breakout with the
+ - `~meeting breakout <id> [description]` Registers a breakout with the
    given description. This is available during the meeting (not during 
    roll-call). At the end of the meeting, any breakouts that have been
    registered are listed with their description. It's ok for *description*
-   to be blank.
+   to be blank. The first person to register a breakout with a given
+   *id* is the chair of that breakout.
  - `~meeting breakout <id>` Anyone else can **also** register for a
    breakout. The Matrix Ids that register for a breakout are mentioned
    at the end.
