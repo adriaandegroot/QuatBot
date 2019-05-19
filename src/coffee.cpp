@@ -195,6 +195,7 @@ public:
     {
         const auto [dataDirName, saveFileName] = dataLocation();
         QFile saveFile(dataDirName + "/" + saveFileName);
+        qDebug() << "Loading coffee stats from" << saveFile.fileName();
         if (saveFile.exists() && saveFile.open(QIODevice::ReadOnly))
         {
             QDataStream d(&saveFile);
