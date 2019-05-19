@@ -18,19 +18,17 @@ struct Breakout
 {
     QString id;
     QString description;
+    QString chair;
     QStringList participants;
     
     QString toString() const
     {
         QStringList parts{"Breakout:"};
         parts << ( description.isEmpty() ? id : description );
-        if (participants.count() > 1)
+        parts << "Chair:" << chair;
+        if (participants.count() > 0)
         {
             parts << "Participants:" << participants;
-        }
-        else if (participants.count() == 1)
-        {
-            parts << "Chair:" << participants;
         }
         
         return parts.join(' ');
@@ -161,7 +159,7 @@ struct Meeting::Private
         }
         
         // None matched, make new
-        m_breakouts.append({breakoutId, description, QStringList{user}});
+        m_breakouts.append({breakoutId, description, user, QStringList{}});
         
         QStringList l{QString("Breakout '%1' is registered.").arg(breakoutId)};
         if (!description.isEmpty())
