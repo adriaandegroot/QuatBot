@@ -14,12 +14,74 @@
 namespace QuatBot
 {
     
+struct Meeting::Private
+{
+    explicit Private() :
+        m_state(State::None)
+    {
+        QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
+        m_waiting.setSingleShot(true);
+    }
+    
+    bool hasStarted() const { return m_state != State::None; }
+    bool isNew(const QString& s) { return !m_participantsDone.contains(s) && !m_participants.contains(s); }
+    
+    void addParticipant(const QString& s)
+    {
+        m_participants.append(s);
+        // Keep the chair at the end
+        m_participants.removeAll(m_chair);
+        m_participants.append(m_chair);
+    }
+
+    /// @brief Start the meeting
+    void start(Bot* bot, const QString& chair)
+    {
+        m_state = State::RollCall;
+        m_breakouts.clear();
+        m_participantsDone.clear();
+        m_participants.clear();
+        m_participants.append(chair);
+        m_chair = chair;
+        m_current.clear();
+
+        if (bot->botUser() != m_chair)
+        {
+            // Don't rollcall the bot itself
+            m_participantsDone.insert(bot->botUser());
+        }
+        m_waiting.start(60000);  // one minute until reminder
+    }
+
+    bool isChair(const CommandArgs& cmd) { return cmd.user == m_chair; }
+
+    void skip(const QString& user)
+    {
+        m_participants.removeAll(user);
+        m_participantsDone.insert(user);
+    }
+    
+    void bump(const QString& user)
+    {
+        m_participants.removeAll(user);
+        m_participantsDone.remove(user);
+        m_participants.insert(0, user);
+    }
+    
+    State m_state;
+    QList<QString> m_participants;
+    QSet<QString> m_participantsDone;
+    QList<QString> m_breakouts;
+    QString m_chair;
+    QString m_current;
+    QTimer m_waiting;
+    bool m_currentSeen;
+};
+
 Meeting::Meeting(Bot* bot) :
     Watcher(bot),
-    m_state(State::None)
+    d(new Private)
 {
-    QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
-    m_waiting.setSingleShot(true);
 }
     
 Meeting::~Meeting()
@@ -41,17 +103,13 @@ const QStringList& Meeting::moduleCommands() const
 void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
 {
     // New speaker?
-    if ((m_state != State::None) && !m_participantsDone.contains(e->senderId()) && !m_participants.contains(e->senderId()))
+    if (d->hasStarted() && d->isNew(e->senderId()))
     {
-        m_participants.append(e->senderId());
-        
-        // Keep the chair at the end
-        m_participants.removeAll(m_chair);
-        m_participants.append(m_chair);
+        d->addParticipant(e->senderId());
     }
-    if ((m_state == State::InProgress ) && (e->senderId() == m_current))
+    if ((d->m_state == State::InProgress ) && (e->senderId() == d->m_current))
     {
-        m_waiting.stop();
+        d->m_waiting.stop();
     }
 }
 
@@ -63,25 +121,11 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("rollcall"))
     {
-        if (m_state == State::None)
+        if (!d->hasStarted())
         {
+            d->start(m_bot, cmd.user);
             enableLogging(cmd, true);
-            m_state = State::RollCall;
-            m_breakouts.clear();
-            m_participantsDone.clear();
-            m_participants.clear();
-            m_participants.append(cmd.user);
-            m_chair = cmd.user;
-            m_current.clear();
-
-            if (m_bot->botUser() != m_chair)
-            {
-                // Don't rollcall the bot itself
-                m_participantsDone.insert(m_bot->botUser());
-            }
-
             message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
-            m_waiting.start(60000);  // one minute until reminder
         }
         else
         {
@@ -90,11 +134,11 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("next"))
     {
-        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        if (!d->hasStarted())
         {
             shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
+        else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
             if (m_state == State::RollCall)
             {
@@ -116,18 +160,17 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("skip"))
     {
-        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        if (!d->hasStarted())
         {
             shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
+        else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
             for (const auto& user : m_bot->userLookup(cmd.args))
             {
                 if (!user.isEmpty())
                 {
-                    m_participants.removeAll(user);
-                    m_participantsDone.insert(user);
+                    d->skip(user);
                     message(QString("User %1 will be skipped this meeting.").arg(user));
                 }
             }
@@ -135,19 +178,17 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("bump"))
     {
-        if (!((m_state == State::RollCall) || (m_state == State::InProgress)))
+        if (!d->hasStarted())
         {
             shortStatus();
         }
-        else if ((cmd.user == m_chair) || m_bot->checkOps(cmd))
+        else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
             for (const auto& user : m_bot->userLookup(cmd.args))
             {
                 if (!user.isEmpty())
                 {
-                    m_participants.removeAll(user);
-                    m_participantsDone.remove(user);
-                    m_participants.insert(0, user);
+                    d->bump(user);
                     message(QString("User %1 is up next.").arg(user));
                 }
             }
@@ -169,8 +210,8 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     {
         if (m_bot->checkOps(cmd))
         {
-            m_state = State::None;
-            m_waiting.stop();
+            d->m_state = State::None;
+            d->m_waiting.stop();
             message(QString("The meeting has been forcefully ended."));
         }
     }
