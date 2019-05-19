@@ -86,6 +86,8 @@ public:
     QStringList userIds();
     /// @brief User id of the bot user itself
     QString botUser() const;
+    /// @brief Room name this bot is attached to
+    QString botRoom() const { return m_roomName; }
 
     /// @brief Sends a message to the room. @p l is joined with spaces.
     void message(const QStringList& l);
