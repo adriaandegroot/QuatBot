@@ -7,7 +7,10 @@
 
 #include "coffee.h"
 
+#include <QDebug>
+#include <QDir>
 #include <QMap>
+#include <QStandardPaths>
 #include <QTimer>
 
 namespace QuatBot
@@ -32,6 +35,15 @@ public:
 
 class Coffee::Private
 {
+    /// @brief Remember to save state on return from a function
+    struct AutoSave
+    {
+        AutoSave(Private* p) : m_p(p) {}
+        ~AutoSave() { m_p->saveV1(); }
+        Private* m_p;
+    } ;
+    friend struct AutoSave;
+    
 public:
     Private()
     {
@@ -52,6 +64,7 @@ public:
     /// @brief Give @p user a coffee; returns their coffee count
     int coffee(const QString& user)
     {
+        AutoSave a(this);
         auto& c = find(user);
         return ++c.m_coffee;
     }
@@ -121,6 +134,39 @@ private:
         {
             m_cookiejar++;
         }
+    }
+    
+    void saveV1() const
+    {
+        QString dataDirName = QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation);
+        if (dataDirName.isEmpty())
+        {
+            static bool warned = false;
+            if (!warned)
+            {
+                qWarning() << "Could no find an AppData location.";
+                warned = true;
+            }
+            return;
+        }
+        
+        QDir dataDir(dataDirName);
+        if (!dataDir.exists())
+        {
+            dataDir.mkdir(dataDirName);
+        }
+        if (!dataDir.exists())
+        {
+            static bool warned = false;
+            if (!warned)
+            {
+                qWarning() << "Could not create AppData location" << dataDirName;
+                warned = true;
+            }
+            return;
+        }
+        
+        qDebug() << "AppData location" << dataDirName;
     }
     
     int m_cookiejar = 12;  // a dozen cookies by default
