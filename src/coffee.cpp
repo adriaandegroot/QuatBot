@@ -74,6 +74,7 @@ public:
     {
         if (m_cookiejar > 0)
         {
+            AutoSave a(this);
             auto& c = find(user);
             m_cookiejar--;
             c.m_cookie++;
@@ -96,6 +97,7 @@ public:
         {
             if (u.m_cookie > 0)
             {
+                AutoSave a(this);
                 u.m_cookie--;
                 o.m_cookie++;
                 return true;
@@ -110,6 +112,7 @@ public:
         auto& u = find(user);
         if (u.m_cookie > 0)
         {
+            AutoSave a(this);
             u.m_cookie--;
             u.m_cookieEated++;
             return true;
