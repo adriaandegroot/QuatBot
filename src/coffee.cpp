@@ -57,7 +57,17 @@ public:
     {
         for (const auto& u : m_stats)
         {
-            bot->message(QString("%1 has had %2 cups of coffee and has eaten %3 cookies.").arg(u.m_user).arg(u.m_coffee).arg(u.m_cookie));
+            QStringList info{QString("%1 has had %2 cups of coffee").arg(u.m_user).arg(u.m_coffee)};
+            if (u.m_cookie > 0)
+            {
+                info << QString("and has %1 cookies").arg(u.m_cookie);
+            }
+            if (u.m_cookieEated > 0)
+            {
+                info << QString("and has eaten %1 cookies").arg(u.m_cookieEated);
+            }
+            info << "so far.";
+            bot->message(info);
         }
     }
 
