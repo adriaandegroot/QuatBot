@@ -146,8 +146,8 @@ Commands related to coffee, available to all:
  - `~coffee cookie eat` Eat a cookie (if you have one). You can also just write
    `~coffee cookie` or `~cookie`.
  - `~coffee cookie give <name..>` Give cookies to other people.
- - `~coffee stats` Give statistics on coffee and cookie usage. 
-
+ - `~coffee stats` Give statistics on coffee and cookie usage.
+ - `~coffee lart` Suggest behavioral improvements.
 
 
 ## Building
