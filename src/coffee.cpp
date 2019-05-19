@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QMap>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTimer>
 
@@ -46,7 +47,8 @@ class Coffee::Private
     } ;
     
 public:
-    Private()
+    Private(const QString& roomName) :
+        m_saveFileName([](QString s){ s.remove(QRegularExpression("[^a-zA-Z0-9_-]")); return QString("cookiejar-%1").arg(s); }(roomName))
     {
         QObject::connect(&m_refill, &QTimer::timeout, [this](){ this->addCookie(); });
         m_refill.start(3579100);  // every hour, -ish
@@ -134,7 +136,7 @@ public:
 
     const QPair<QString,QString> dataLocation() const
     {
-        return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), QStringLiteral("cookiejar"));
+        return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), m_saveFileName);
     }
     
     static constexpr const qint32 MAGIC = 0xcafe;
@@ -193,6 +195,7 @@ public:
     {
         const auto [dataDirName, saveFileName] = dataLocation();
         QFile saveFile(dataDirName + "/" + saveFileName);
+        qDebug() << "Loading coffee stats from" << saveFile.fileName();
         if (saveFile.exists() && saveFile.open(QIODevice::ReadOnly))
         {
             QDataStream d(&saveFile);
@@ -300,12 +303,13 @@ private:
     int m_cookiejar = 12;  // a dozen cookies by default
     QMap<QString, CoffeeStats> m_stats;
     QTimer m_refill;
+    const QString m_saveFileName;  // based on room name
 };
 
 
 Coffee::Coffee(Bot* parent):
     Watcher(parent),
-    d(new Private)
+    d(new Private(parent->botRoom()))
 {
 }
 
