@@ -25,10 +25,10 @@ struct Breakout
     {
         QStringList parts{"Breakout:"};
         parts << ( description.isEmpty() ? id : description );
-        parts << "Chair:" << chair;
+        parts << "; Chair:" << chair;
         if (participants.count() > 0)
         {
-            parts << "Participants:" << participants;
+            parts << "; Participants:" << participants;
         }
         
         return parts.join(' ');
