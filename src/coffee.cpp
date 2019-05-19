@@ -355,7 +355,7 @@ void Coffee::handleCookieCommand(const CommandArgs& cmd)
     {
         const auto& realUsers = m_bot->userIds();
         
-        for (const auto& other : cmd.args)
+        for (const auto& other : m_bot->userLookup(cmd.args))
         {
             if (!realUsers.contains(other))
             {
