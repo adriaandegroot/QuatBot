@@ -7,6 +7,8 @@
 
 #include "coffee.h"
 
+#include <QDataStream>
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QMap>
@@ -39,10 +41,9 @@ class Coffee::Private
     struct AutoSave
     {
         AutoSave(Private* p) : m_p(p) {}
-        ~AutoSave() { m_p->saveV1(); }
+        ~AutoSave() { m_p->save(); }
         Private* m_p;
     } ;
-    friend struct AutoSave;
     
 public:
     Private()
@@ -119,27 +120,8 @@ public:
         }
         return false;
     }
-    
-private:
-    CoffeeStats& find(const QString& user)
-    {
-        if (!m_stats.contains(user))
-        {
-            m_stats.insert(user, CoffeeStats(user));
-        }
-        return m_stats[user];
-    }
-    
-    /// @brief Replenish the cookiejar
-    void addCookie()
-    {
-        if (m_cookiejar < 12)
-        {
-            m_cookiejar++;
-        }
-    }
-    
-    void saveV1() const
+
+    void save() const
     {
         QString dataDirName = QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation);
         if (dataDirName.isEmpty())
@@ -169,7 +151,59 @@ private:
             return;
         }
         
-        qDebug() << "AppData location" << dataDirName;
+        QString saveFileName = QStringLiteral("cookiejar");
+        if (dataDir.exists(saveFileName))
+        {
+            // The cookie-jar isn't *SO* important that I'm going to do
+            // a lot of error-handling here.
+            dataDir.rename(saveFileName, saveFileName + QStringLiteral(".old"));
+        }
+        
+        QFile saveFile(dataDir.absolutePath() + "/" + saveFileName);
+        if (!saveFile.open(QIODevice::WriteOnly))
+        {
+            qWarning() << "Could not create save-file" << saveFile.fileName();
+        }
+        else
+        {
+            saveV1(QDataStream(&saveFile));
+            saveFile.close();
+        }
+    }
+
+private:
+    CoffeeStats& find(const QString& user)
+    {
+        if (!m_stats.contains(user))
+        {
+            m_stats.insert(user, CoffeeStats(user));
+        }
+        return m_stats[user];
+    }
+    
+    /// @brief Replenish the cookiejar
+    void addCookie()
+    {
+        if (m_cookiejar < 12)
+        {
+            m_cookiejar++;
+        }
+    }
+
+    void saveV1(QDataStream d) const
+    {
+        d << qint32(0xcafe);  // Coffee!
+        d << qint32(1);       // Version 1
+        d << QDateTime::currentDateTime();  // When?
+        
+        d << m_stats.count();   // Number of elements
+        for (const auto& u : m_stats)
+        {
+            d << u.m_user << qint32(u.m_coffee) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
+        }
+        
+        d << qint32(0) << qint32(0);
+        d << QString("Koffiepot");
     }
     
     int m_cookiejar = 12;  // a dozen cookies by default
