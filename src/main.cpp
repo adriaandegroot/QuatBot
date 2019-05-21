@@ -74,8 +74,8 @@ int main(int argc, char** argv)
         [&]()
         {
             qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
-            conn.setLazyLoading(true);
-            conn.syncLoop();
+            conn.setLazyLoading(false);
+            conn.syncLoop(30);
             for (const auto& r: parser.positionalArguments())
             {
                 // Unused, gets cleaned up by itself
