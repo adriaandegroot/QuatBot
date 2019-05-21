@@ -233,22 +233,29 @@ private:
 
 void Bot::addedMessages(int from, int to)
 {
-    qDebug() << "Room messages" << from << '-' << to;
     if (m_newlyConnected)
     {
-        qDebug() << ".. Ignoring them";
+        qDebug() << "Room messages" << from << '-' << to << ".. Ignoring them";
         m_room->markMessagesAsRead(m_room->readMarkerEventId());
         return;
     }
     
+    bool first = true;
     const auto& timeline = m_room->messageEvents();
     for (int it=from; it<=to; ++it)
     {
         const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
         if (event)
         {
+            if (first)
+            {
+                qDebug() << "Room messages" << from << '-' << to << event->timestamp().toString();
+                first = false;
+            }
             for(const auto& w : m_watchers)
+            {
                 w->handleMessage(event);
+            }
             
             CommandArgs cmd(event);
             if (cmd.isValid())
