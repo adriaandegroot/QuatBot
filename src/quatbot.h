@@ -91,6 +91,10 @@ public:
      * Returns a list of plausible Matrix Ids for the given words.
      * (in particular, the list of four words {adridg the bot [ade]}
      * would return two Ids, with my current nicknames in use)
+     * 
+     * Names that are not recognized are kept intact; so looking up
+     * {derp adridg the bot} would return {derp @adridg:matrix.org}.
+     * Calling code is expected to call userLookup() individually to check.
      */
     QStringList userLookup(const QStringList& users);
     

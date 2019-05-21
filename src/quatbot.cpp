@@ -68,10 +68,11 @@ QStringList Bot::userLookup(const QStringList& users)
         }
         else
         {
+            bool found = false;
             for (auto it = idToDisplayName.constKeyValueBegin(); it != idToDisplayName.constKeyValueEnd(); ++it)
             {
                 const auto [matrixId, userParts] = *it;
-                bool found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
+                found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
                 for (int j = 0; j < userParts.count(); ++j)
                 {
                     if (userParts[j] != users[i+j])
@@ -87,7 +88,11 @@ QStringList Bot::userLookup(const QStringList& users)
                     break;
                 }
             }
-            // if there is no id found, skip this word
+            // if there is no id found, leave it for the caller
+            if (!found)
+            {
+                ids << accumulator;
+            }
         }
         i++;
     }
