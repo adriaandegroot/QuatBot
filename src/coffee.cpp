@@ -383,6 +383,13 @@ void Coffee::handleCookieCommand(const CommandArgs& cmd)
             }
         }
     }
+    else if (handleMissingVerb(cmd))
+    {
+        // This handles the case for "~cookie <user-id>" which is easy
+        // to type. Then the first word of the user-ids ends up in cmd,
+        // and things are a mess. No code here, because it's all handled
+        // by handleMissingVerb() if it returns true.
+    }
     else
     {
         message(QString("Cookies don't work that way."));
@@ -408,7 +415,7 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     }
     else if ((cmd.command == QStringLiteral("coffee")) || (cmd.command.isEmpty()))
     {
-        // THe empty case is when you enter just ~coffee. That's interpreted
+        // The empty case is when you enter just ~coffee. That's interpreted
         // as a module name, and the command goes away.
         if (d->coffee(cmd.user) <= 1)
         {
@@ -427,6 +434,24 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     {
         message(Usage{});
     }
+}
+
+bool Coffee::handleMissingVerb(const CommandArgs& cmd)
+{
+    QStringList words(cmd.args);
+    words.insert(0, cmd.command);
+    
+    QStringList discards;
+    QStringList users = m_bot->userLookup(words);
+    if (!discards.contains(cmd.command))
+    {
+        CommandArgs c(cmd);  // Copy to preserve timestamp, sender
+        c.command = QStringLiteral("give");
+        c.args = users;
+        handleCookieCommand(c);
+        return true;
+    }
+    return false;
 }
 
 }

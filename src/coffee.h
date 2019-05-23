@@ -38,6 +38,7 @@ public:
 
 protected:
     void handleCookieCommand(const CommandArgs&);
+    bool handleMissingVerb(const CommandArgs&);
     
 private:
     Private* d;
