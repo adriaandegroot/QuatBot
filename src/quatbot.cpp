@@ -61,7 +61,11 @@ QStringList Bot::userLookup(const QStringList& users)
     while (i < users.count())
     {
         QString accumulator = users[i];
-        if (accumulator.startsWith('@') && accumulator.contains(':'))
+        if (accumulator.isEmpty())
+        {
+            // Just skip this one
+        }
+        else if (accumulator.startsWith('@') && accumulator.contains(':'))
         {
             // Looks like an Id already
             ids << accumulator;
@@ -73,7 +77,7 @@ QStringList Bot::userLookup(const QStringList& users)
             {
                 const auto [matrixId, userParts] = *it;
                 found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
-                for (int j = 0; j < userParts.count(); ++j)
+                for (int j = 0; (j < userParts.count()) && ((i+j) < users.count()); ++j)
                 {
                     if (userParts[j] != users[i+j])
                     {
