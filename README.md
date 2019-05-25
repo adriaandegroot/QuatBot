@@ -133,6 +133,10 @@ Commands related to meetings, available to the *chair* and **operator**:
    of participants. In principle participants are called upon in the
    order in which they respond during roll-call. This command allows
    some changes in the order (e.g. if someone has to leave soon).
+   Use numbers to bump participants to a specific spot, e.g.
+   `~meeting bump 3 fred 4 charlie 2 kate` to get Kate, Fred, and then
+   Charlie into order (but after the current speaker and after whoever's
+   next).
 
 Commands related to meetings, available to the **operator**:
 
