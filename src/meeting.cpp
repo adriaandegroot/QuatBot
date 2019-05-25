@@ -205,7 +205,7 @@ const QString& Meeting::moduleName() const
 
 const QStringList& Meeting::moduleCommands() const
 {
-    static const QStringList commands{"status","rollcall","next","breakout","skip","bump","done"};
+    static const QStringList commands{"status","rollcall","next","breakout","skip","bump","queue","done"};
     return commands;
 }
 
@@ -293,15 +293,18 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
-            int index = 0;
+            int index = 1;
             for (const auto& user : m_bot->userLookup(cmd.args))
             {
                 bool ok = true;
-                index = qBound(1, user.toInt(&ok), d->m_participants.count()-1);
+                int new_index = qBound(1, user.toInt(&ok), d->m_participants.count()-1);
                 if (ok)
                 {
+                    // It was a number, so save it for next time around
+                    index = new_index;
                     continue;
                 }
+                // not OK means it wasn't a number, e.g. a username
                 
                 QString userName = m_bot->userLookup(user);
                 if (!userName.isEmpty())
@@ -309,7 +312,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                     d->bump(index-1, userName);
                     if (index > 1)
                     {
-                        message(QString("User %1 will be up in %2.").arg(userName).arg(index));
+                        message(QString("User %1 will be up in %2.").arg(userName).arg(d->m_participants.indexOf(userName)+1));
                     }
                     else
                     {
@@ -320,7 +323,47 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 {
                     message(QString("%1 isn't here, Dave.").arg(user));
                 }
+                index++;
             }
+        }
+    }
+    else if (cmd.command == QStringLiteral("queue"))
+    {
+        if (!d->hasStarted())
+        {
+            shortStatus();
+        }
+        else
+        {
+            int amount = d->m_participants.count();
+            if (!cmd.args.isEmpty())
+            {
+                bool ok = false;
+                int new_amount = qBound(1, cmd.args[0].toInt(&ok), d->m_participants.count());
+                if (ok)
+                {
+                    amount = new_amount;
+                }
+            }
+            QStringList participantsMessage;
+
+            if ((d->m_state == State::InProgress) && !d->m_current.isEmpty())
+            {
+                participantsMessage << QString("It is %1 's turn.").arg(d->m_current);
+            }
+            participantsMessage << ((amount >= d->m_participants.count()) ? QString("Meeting participants:") : QString("Next %1 participants:").arg(amount));
+            for (const auto& u : d->m_participants)
+            {
+                if (--amount >= 0)
+                {
+                    participantsMessage << u;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            message(participantsMessage);
         }
     }
     else if (cmd.command == QStringLiteral("breakout"))

@@ -119,6 +119,8 @@ Commands related to meetings, available to all:
  - `~meeting breakout <id>` Anyone else can **also** register for a
    breakout. The Matrix Ids that register for a breakout are mentioned
    at the end.
+ - `~meeting queue [n]` shows the next *n* participants (defaults to all)
+   in the meeting queue.
 
 Commands related to meetings, available to the *chair* and **operator**:
 
@@ -134,7 +136,7 @@ Commands related to meetings, available to the *chair* and **operator**:
    order in which they respond during roll-call. This command allows
    some changes in the order (e.g. if someone has to leave soon).
    Use numbers to bump participants to a specific spot, e.g.
-   `~meeting bump 3 fred 4 charlie 2 kate` to get Kate, Fred, and then
+   `~meeting bump 3 fred charlie 2 kate` to get Kate, Fred, and then
    Charlie into order (but after the current speaker and after whoever's
    next).
 
