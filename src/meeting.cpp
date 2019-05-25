@@ -98,11 +98,11 @@ struct Meeting::Private
         m_participantsDone.insert(user);
     }
     
-    void bump(const QString& user)
+    void bump(int index, const QString& user)
     {
         m_participants.removeAll(user);
         m_participantsDone.remove(user);
-        m_participants.insert(0, user);
+        m_participants.insert(index, user);
     }
     
     void next()
@@ -293,12 +293,32 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         }
         else if (d->isChair(cmd) || m_bot->checkOps(cmd))
         {
+            int index = 0;
             for (const auto& user : m_bot->userLookup(cmd.args))
             {
-                if (!user.isEmpty())
+                bool ok = true;
+                index = qBound(1, user.toInt(&ok), d->m_participants.count()-1);
+                if (ok)
                 {
-                    d->bump(user);
-                    message(QString("User %1 is up next.").arg(user));
+                    continue;
+                }
+                
+                QString userName = m_bot->userLookup(user);
+                if (!userName.isEmpty())
+                {
+                    d->bump(index-1, userName);
+                    if (index > 1)
+                    {
+                        message(QString("User %1 will be up in %2.").arg(userName).arg(index));
+                    }
+                    else
+                    {
+                        message(QString("User %1 is up next.").arg(userName));
+                    }
+                }
+                else
+                {
+                    message(QString("%1 isn't here, Dave.").arg(user));
                 }
             }
         }
