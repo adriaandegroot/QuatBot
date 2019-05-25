@@ -240,7 +240,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 ids.removeAll(u);
             for (const auto& u : d->m_participants)
                 ids.removeAll(u);
-            message(QStringList{"Hello @room, this is the roll-call!"} << QString("%1 is chair.").arg(d->m_chair) << ids);
+            message(QStringList{"Hello @room, this is the roll-call!", QString("%1 is chair.").arg(d->m_chair), "Calling"} << ids);
         }
         else
         {
