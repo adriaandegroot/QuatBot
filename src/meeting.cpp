@@ -74,6 +74,7 @@ struct Meeting::Private
             // Don't rollcall the bot itself
             m_participantsDone.insert(m_bot->botUser());
         }
+        m_reminderCount = 2;
         m_waiting.start(60000);  // one minute until reminder
     }
 
@@ -137,6 +138,7 @@ struct Meeting::Private
         {
             m_bot->message(QString("%1, you're up (after that, we're done!).").arg(m_current));
         }
+        m_reminderCount = 2;
         m_waiting.start(30000); // half a minute to reminder
     }
     
@@ -181,7 +183,8 @@ struct Meeting::Private
     QString m_chair;
     QString m_current;
     QTimer m_waiting;
-    bool m_currentSeen;
+    int m_reminderCount = 0;
+    bool m_currentSeen = false;
 };
 
 Meeting::Meeting(Bot* bot) :
@@ -231,7 +234,13 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         {
             d->start(cmd.user);
             enableLogging(cmd, true);
-            message(QStringList{"Hello @room, this is the roll-call!"} << m_bot->userIds());
+            QStringList ids = m_bot->userIds();
+            ids.removeAll(d->m_chair);
+            for (const auto& u : d->m_participantsDone)
+                ids.removeAll(u);
+            for (const auto& u : d->m_participants)
+                ids.removeAll(u);
+            message(QStringList{"Hello @room, this is the roll-call!"} << QString("%1 is chair.").arg(d->m_chair) << ids);
         }
         else
         {
@@ -345,7 +354,7 @@ void Meeting::status() const
     l << _shortStatus(d->m_state);
     if (d->m_state != State::None)
     {
-        l << QString("Chaired by %1.").arg(m_chair)
+        l << QString("Chaired by %1.").arg(d->m_chair)
             << QString("There are %1 participants left.").arg(d->m_participants.count());
         // Here > 1 because the bot itself is always "done"
         if (d->m_participantsDone.count() > 1)
@@ -385,6 +394,9 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
 
 void Meeting::Private::timeout()
 {
+    if (--m_reminderCount < 0)
+        return;
+    
     if (m_state == State::RollCall)
     {
         QStringList noResponse{"Roll-call reminder for"};
@@ -407,6 +419,7 @@ void Meeting::Private::timeout()
         m_bot->message(QStringList{m_current, "are you with us?"});
     }
     m_bot->message(Bot::Flush{});
+    m_waiting.start();
 }
 
 }  // namespace
