@@ -46,14 +46,16 @@ struct Meeting::Private
     }
     
     bool hasStarted() const { return m_state != State::None; }
-    bool isNew(const QString& s) { return !m_participantsDone.contains(s) && !m_participants.contains(s); }
     
     void addParticipant(const QString& s)
     {
         m_participants.append(s);
         // Keep the chair at the end
-        m_participants.removeAll(m_chair);
-        m_participants.append(m_chair);
+        if (!m_participantsDone.contains(m_chair))
+        {
+            m_participants.removeAll(m_chair);
+            m_participants.append(m_chair);
+        }
     }
 
     /// @brief Start the meeting (roll-call)
@@ -79,7 +81,6 @@ struct Meeting::Private
     void startProper()
     {
         m_state = State::InProgress;
-        m_participantsDone.clear();
         if (m_bot->botUser() != m_chair)
         {
             m_participants.removeAll(m_bot->botUser());
@@ -87,6 +88,7 @@ struct Meeting::Private
         }
     }
     
+    bool isNew(const QString& s) { return !m_participantsDone.contains(s) && !m_participants.contains(s); }
     bool isChair(const CommandArgs& cmd) { return cmd.user == m_chair; }
 
     void skip(const QString& user)
@@ -294,7 +296,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else if (cmd.command == QStringLiteral("breakout"))
     {
-        if (!(d->m_state == State::InProgress))
+        if (!d->hasStarted())
         {
             shortStatus();
         }
