@@ -343,11 +343,17 @@ void Meeting::status() const
     l << _shortStatus(d->m_state);
     if (d->m_state != State::None)
     {
-        l << QString("There are %1 participants.").arg(d->m_participants.count());
+        l << QString("Chaired by %1.").arg(m_chair)
+            << QString("There are %1 participants left.").arg(d->m_participants.count());
+        // Here > 1 because the bot itself is always "done"
+        if (d->m_participantsDone.count() > 1)
+        {
+            l << QString("%1 people are already done.").arg(d->m_participantsDone.count());
+        }
     }
     if ((d->m_state == State::InProgress) && !d->m_current.isEmpty())
     {
-        l << QString("It is %1 's turn.").arg(d->m_current);
+        l << QString("\nIt is %1 's turn.").arg(d->m_current);
     }
     message(l);
 }
