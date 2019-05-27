@@ -265,7 +265,7 @@ void Bot::addedMessages(int from, int to)
         {
             if (first)
             {
-                qDebug() << "Room messages" << from << '-' << to << event->timestamp().toString() << "arrived" << QDateTime::currentDateTime().toString();
+                qDebug() << "Room messages" << from << '-' << to << event->timestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
                 first = false;
             }
             for(const auto& w : m_watchers)
