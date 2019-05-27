@@ -194,6 +194,10 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
             }
             else
             {
+                m_room->checkVersion();
+                qDebug() << "Room version" << m_room->version();
+                // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
+                QTimer::singleShot(10000, this, &Bot::baseStateLoaded);
                 connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
                 connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
             }
@@ -222,11 +226,14 @@ Bot::~Bot()
     
 void Bot::baseStateLoaded()
 {
-    m_newlyConnected = false;
-    qDebug() << "Room base state loaded"
-        << "id=" << m_room->id()
-        << "name=" << m_room->displayName()
-        << "topic=" << m_room->topic();
+    if (m_newlyConnected)
+    {
+        m_newlyConnected = false;
+        qDebug() << "Room base state loaded"
+            << "id=" << m_room->id()
+            << "name=" << m_room->displayName()
+            << "topic=" << m_room->topic();
+    }
 }
     
 /// @brief RAII helper to always flush bot messages
