@@ -384,6 +384,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             d->m_state = State::None;
             d->m_waiting.stop();
             message(QString("The meeting has been forcefully ended."));
+            enableLogging(cmd, false);
         }
     }
     else
