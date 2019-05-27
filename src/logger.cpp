@@ -117,8 +117,12 @@ void Logger::Private::flush()
     }
 }
 
+template<class stream> void eol(stream& s) { s << '\n'; }
+template<> void eol<QDebug>(QDebug&) { }
+
 // make copies because we'll be modifying them
-static void logX(QTextStream& s, QString timestamp, QString sender, QString message)
+template<class stream>
+void logX(stream& s, QString timestamp, QString sender, QString message)
 {
     timestamp.truncate(19);
     if (sender.contains(':'))
@@ -145,7 +149,8 @@ static void logX(QTextStream& s, QString timestamp, QString sender, QString mess
     }
     else
     {
-        s << message << '\n';
+        s << message;
+        eol(s);
     }
 }
 
@@ -156,6 +161,9 @@ void Logger::Private::log(const QString& s)
         ++m_lines;
         logX(*m_stream, QString(), QStringLiteral("*BOT*"), s);
     }
+    
+    auto d = qDebug().noquote().nospace();
+    logX(d, QString(), QStringLiteral("*BOT*"), s);
 }
 
 void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
@@ -165,6 +173,9 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
         ++m_lines;
         logX(*m_stream, message->timestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
     }
+    
+    auto d = qDebug().noquote().nospace();
+    logX(d, message->timestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
 }
 
 void Logger::Private::report(Bot* bot)

@@ -382,7 +382,6 @@ void Bot::message(const QString& s)
     m_accumulatedMessages.append(s);
     for (const auto& p : m_watchers)
         p->handleMessage(s);
-    qDebug() << "**BOT**" << s;
 }
 
 void Bot::message(Bot::Flush)
