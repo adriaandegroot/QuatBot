@@ -144,9 +144,9 @@ void BasicCommands::handleCommand(const CommandArgs& l)
     else if (l.command == QStringLiteral("status"))
     {
         message(QString(
-            "(quatbot) It is %1. Your message was sent at %2. "
+            "(quatbot) It is %1. Your message was sent at %2. (Time UTC) "
             "I can see %3 people in the room. I have processed %4 messages and %5 commands.")
-            .arg(munge(QTime::currentTime()), munge(m_lastMessageTime))
+            .arg(QDateTime::currentDateTimeUtc().time().toString(), m_lastMessageTime.toString())
             .arg(m_bot->userIds().count())
             .arg(m_messageCount)
             .arg(m_commandCount)
