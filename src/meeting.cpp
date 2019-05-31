@@ -351,17 +351,24 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             {
                 participantsMessage << QString("It is %1 's turn.").arg(d->m_current);
             }
-            participantsMessage << ((amount >= d->m_participants.count()) ? QString("Meeting participants:") : QString("Next %1 participants:").arg(amount));
-            for (const auto& u : d->m_participants)
+            if ( d->m_participants.count() > 0 )
             {
-                if (--amount >= 0)
+                participantsMessage << ((amount >= d->m_participants.count()) ? QString("All upcoming participants:") : QString("Next %1 participants:").arg(amount));
+                for (const auto& u : d->m_participants)
                 {
-                    participantsMessage << u;
+                    if (--amount >= 0)
+                    {
+                        participantsMessage << u;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
-                {
-                    break;
-                }
+            }
+            else
+            {
+                participantsMessage << QString("No participants after that.");
             }
             message(participantsMessage);
         }
