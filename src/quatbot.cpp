@@ -43,19 +43,67 @@ QStringList splitUserName(const QString& s)
     }
     return l;
 }
-        
+
+/** @brief Pair of Matrix-Id and split-up displayname.
+ * 
+ * This is used in matching names to Matrix-Ids: a command can name
+ * a user, either by Matrix-Id or by nickname. Since nicknames may
+ * be more than one word, we need to be able to match, say
+ * `@adridg:matirx.org` with the nickname *adridg the bot*.
+ * 
+ * To do that, we'll sort nicknames in the room by length,
+ * longest first, so that *adridg the bot* and *adridg* are
+ * treated separately (and using the long nickname won't match
+ * with the short one first).
+ */
+struct DisplayName
+{
+    QString id;
+    QStringList displayName;
+} ;
+
+/** @brief Sort displaynames, longest first, then alphabetical.
+ */
+bool operator<(const DisplayName& a, const DisplayName& b)
+{
+    if (a.displayName.count() > b.displayName.count())
+    {
+        return true;
+    }
+    if (a.displayName.count() < b.displayName.count())
+    {
+        return false;
+    }
+   
+    // Equal length
+    for (int i=0; i < a.displayName.count(); ++i)
+    {
+        if (a.displayName[i] < b.displayName[i])
+        {
+            return true;
+        }
+        if (a.displayName[i] > b.displayName[i])
+        {
+            return false;
+        }
+    }
+    return false;
+}
+
 QStringList Bot::userLookup(const QStringList& users)
 {
     QStringList ids;
     
     if (!m_room)
         return ids;
-    
-    QMap<QString, QStringList> idToDisplayName;
+
+    QList<DisplayName> idToDisplayName;
+    idToDisplayName.reserve(m_room->users().count());
     for (const auto& u : m_room->users())
     {
-        idToDisplayName.insert(u->id(), splitUserName(u->displayname(m_room)));
+        idToDisplayName.append({u->id(), splitUserName(u->displayname(m_room))});
     }
+    std::sort(idToDisplayName.begin(), idToDisplayName.end());
     
     int i = 0;
     while (i < users.count())
@@ -73,9 +121,8 @@ QStringList Bot::userLookup(const QStringList& users)
         else
         {
             bool found = false;
-            for (auto it = idToDisplayName.constKeyValueBegin(); it != idToDisplayName.constKeyValueEnd(); ++it)
+            for (const auto& [matrixId, userParts] : idToDisplayName )
             {
-                const auto [matrixId, userParts] = *it;
                 found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
                 for (int j = 0; (j < userParts.count()) && ((i+j) < users.count()); ++j)
                 {
