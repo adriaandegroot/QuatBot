@@ -25,7 +25,9 @@ for the easily-amused) but its primary focus is handling the meeting.
 
 The bot is controlled from the Matrix chat by text commands. Each command
 is preceded by the **command-character**. By default this is `~` but that
-can be changed.
+can be changed. The command-character **must** be the first character of
+the message; that is, write `~command` and not `@bot: ~command` or
+`please do ~command`.
 
 All of the commands start with the *module name* that is responsible
 for the command. By default, there are three modules: *quatbot*, *log*
