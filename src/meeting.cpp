@@ -209,7 +209,7 @@ const QStringList& Meeting::moduleCommands() const
     return commands;
 }
 
-void Meeting::handleMessage(const QMatrixClient::RoomMessageEvent* e)
+void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
 {
     // New speaker?
     if (d->hasStarted() && d->isNew(e->senderId()))

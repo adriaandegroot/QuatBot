@@ -186,7 +186,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
     m_commandCount++;
 }
 
-void QuatBot::BasicCommands::handleMessage(const QMatrixClient::RoomMessageEvent* event)
+void QuatBot::BasicCommands::handleMessage(const Quotient::RoomMessageEvent* event)
 {
     m_lastMessageTime = event->timestamp().time();
     m_messageCount++;

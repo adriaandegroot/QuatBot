@@ -13,7 +13,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace QMatrixClient
+namespace Quotient
 {
     class Room;
     class RoomMessageEvent;
@@ -46,12 +46,12 @@ struct CommandArgs
      * the Matrix event. If the text of the message does not start with
      * COMMAND_PREFIX, an invalid command is created.
      */
-    explicit CommandArgs(const QMatrixClient::RoomMessageEvent*);
+    explicit CommandArgs(const Quotient::RoomMessageEvent*);
     
     /// @brief Checks @p s for COMMAND_PREFIX
     static bool isCommand(const QString& s);
     /// @brief Checks @p e for COMMAND_PREFIX at the start of the message text
-    static bool isCommand(const QMatrixClient::RoomMessageEvent* e);
+    static bool isCommand(const Quotient::RoomMessageEvent* e);
     
     /// @brief Is this a valid command list?
     bool isValid() const { return !command.isEmpty(); }
@@ -120,7 +120,7 @@ public:
      */
     virtual void handleMessage(const QString&);
     /// @brief Handle message from the Matrix server
-    virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) = 0;
+    virtual void handleMessage(const Quotient::RoomMessageEvent*) = 0;
     /** @brief Called **after** handleMessage() for those containing a command.
      * 
      * If the watcher has a name (e.g. "log") then it responds to commands

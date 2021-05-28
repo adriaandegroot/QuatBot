@@ -226,7 +226,7 @@ const QStringList& Logger::moduleCommands() const
     return commands;
 }
 
-void Logger::handleMessage(const QMatrixClient::RoomMessageEvent* event)
+void Logger::handleMessage(const Quotient::RoomMessageEvent* event)
 {
     d->log(event);
 }

@@ -23,7 +23,7 @@ public:
     const QString& moduleName() const override;
     const QStringList& moduleCommands() const override;
     
-    virtual void handleMessage(const QMatrixClient::RoomMessageEvent*) override;
+    virtual void handleMessage(const Quotient::RoomMessageEvent*) override;
     virtual void handleCommand(const CommandArgs&) override;
     
 protected:

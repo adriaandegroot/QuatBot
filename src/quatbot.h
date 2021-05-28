@@ -13,7 +13,7 @@
 #include <QString>
 #include <QVector>
 
-namespace QMatrixClient
+namespace Quotient
 {
     class Connection;
     class Room;
@@ -54,7 +54,7 @@ public:
      * added immediately to the set of operators. The user
      * set in @p conn is also always an operator.
      */
-    explicit Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops=QStringList());
+    explicit Bot(Quotient::Connection& conn, const QString& roomName, const QStringList& ops=QStringList());
     virtual ~Bot() override;
     
     /// @brief Tag-class used in checkOps() overrides.
@@ -148,8 +148,8 @@ protected:
     void setupWatchers();
     
 private:
-    QMatrixClient::Room* m_room = nullptr;
-    QMatrixClient::Connection& m_conn;
+    Quotient::Room* m_room = nullptr;
+    Quotient::Connection& m_conn;
     
     QVector<Watcher*> m_watchers;
     QSet<QString> m_operators;

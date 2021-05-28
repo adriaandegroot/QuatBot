@@ -333,7 +333,7 @@ const QStringList& Coffee::moduleCommands() const
     return commands;
 }
 
-void Coffee::handleMessage(const QMatrixClient::RoomMessageEvent*)
+void Coffee::handleMessage(const Quotient::RoomMessageEvent*)
 {
 }
 
