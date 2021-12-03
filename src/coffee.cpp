@@ -29,7 +29,7 @@ public:
         m_user(u)
     {
     }
-    
+
     QString m_user;
     int m_coffee = 0;
     int m_cookie = 0;
@@ -45,7 +45,7 @@ class Coffee::Private
         ~AutoSave() { m_p->save(); }
         Private* m_p;
     } ;
-    
+
 public:
     Private(const QString& roomName) :
         m_saveFileName([](QString s){ s.remove(QRegularExpression("[^a-zA-Z0-9_-]")); return QString("cookiejar-%1").arg(s); }(roomName))
@@ -74,7 +74,7 @@ public:
     }
 
     int cookies() const { return m_cookiejar; }
-    
+
     /// @brief Give @p user a coffee; returns their coffee count
     int coffee(const QString& user)
     {
@@ -96,13 +96,13 @@ public:
         }
         return false;
     }
-    
+
     /// @brief Give @p other one of @p user 's cookies; returns true on success
     bool transferCookie(const QString& user, const QString& other)
     {
         auto& u = find(user);
         auto& o = find(other);
-        
+
         if (u.m_user == o.m_user)
         {
             return true;  // zero-sum
@@ -119,7 +119,7 @@ public:
             return false;
         }
     }
-    
+
     /// @brief @p user eats a cookie; returns true on success
     bool eatCookie(const QString& user)
     {
@@ -138,13 +138,13 @@ public:
     {
         return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), m_saveFileName);
     }
-    
+
     static constexpr const qint32 MAGIC = 0xcafe;
-    
+
     void save() const
     {
         const auto [dataDirName, saveFileName] = dataLocation();
-        
+
         if (dataDirName.isEmpty())
         {
             static bool warned = false;
@@ -155,7 +155,7 @@ public:
             }
             return;
         }
-        
+
         QDir dataDir(dataDirName);
         if (!dataDir.exists())
         {
@@ -171,14 +171,14 @@ public:
             }
             return;
         }
-        
+
         if (dataDir.exists(saveFileName))
         {
             // The cookie-jar isn't *SO* important that I'm going to do
             // a lot of error-handling here.
             dataDir.rename(saveFileName, saveFileName + QStringLiteral(".old"));
         }
-        
+
         QFile saveFile(dataDir.absolutePath() + "/" + saveFileName);
         if (!saveFile.open(QIODevice::WriteOnly))
         {
@@ -190,7 +190,7 @@ public:
             saveFile.close();
         }
     }
-    
+
     void load()
     {
         const auto [dataDirName, saveFileName] = dataLocation();
@@ -229,7 +229,7 @@ private:
         }
         return m_stats[user];
     }
-    
+
     /// @brief Replenish the cookiejar
     void addCookie()
     {
@@ -244,31 +244,31 @@ private:
         d << qint32(MAGIC);   // Coffee!
         d << qint32(1);       // Version 1
         d << QDateTime::currentDateTime();  // When?
-        
+
         d << qint32(m_stats.count());   // Number of elements
         for (const auto& u : m_stats)
         {
             d << u.m_user << qint32(u.m_coffee) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
         }
-        
+
         d << qint32(0) << qint32(MAGIC);
         d << QString("Koffiepot");
     }
-    
+
     void loadV1(QDataStream& d)
     {
         qint32 count;
-        
+
         QString user;
         qint32 coffee, cookie, eated;
-        
+
         d >> count;
         if ((count < 1) || (count > 1000))
         {
             qWarning() << "Unreasonable coffee-count" << count;
             return;
         }
-        
+
         while(count>0)
         {
             d >> user >> coffee >> cookie >> eated;
@@ -276,10 +276,10 @@ private:
             u.m_coffee = coffee;
             u.m_cookie = cookie;
             u.m_cookieEated = eated;
-            
+
             count--;
         }
-        
+
         // Check trailer?
         d >> count;
         if (count != 0)
@@ -299,7 +299,7 @@ private:
             qWarning() << "Trailer 3 corrupt.";
         }
     }
-    
+
     int m_cookiejar = 12;  // a dozen cookies by default
     QMap<QString, CoffeeStats> m_stats;
     QTimer m_refill;
@@ -354,12 +354,12 @@ void Coffee::handleCookieCommand(const CommandArgs& cmd)
     else if (cmd.command == QStringLiteral("give"))
     {
         const auto& realUsers = m_bot->userIds();
-        
+
         for (const auto& other : m_bot->userLookup(cmd.args))
         {
             if (!realUsers.contains(other))
             {
-                message(QString("%1's not here, Dave.").arg(other));
+                message(QString("%1 is not here.").arg(other));
                 continue;
             }
             if (other == cmd.user)
@@ -440,7 +440,7 @@ bool Coffee::handleMissingVerb(const CommandArgs& cmd)
 {
     QStringList words(cmd.args);
     words.insert(0, cmd.command);
-    
+
     QStringList discards;
     QStringList users = m_bot->userLookup(words);
     if (!discards.contains(cmd.command))
