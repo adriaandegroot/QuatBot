@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "meeting.h"
 
@@ -20,7 +20,7 @@ struct Breakout
     QString description;
     QString chair;
     QStringList participants;
-    
+
     QString toString() const
     {
         QStringList parts{"Breakout:"};
@@ -30,11 +30,11 @@ struct Breakout
         {
             parts << "; Participants:" << participants;
         }
-        
+
         return parts.join(' ');
     }
 };
-    
+
 struct Meeting::Private
 {
     explicit Private(Bot* bot) :
@@ -44,9 +44,9 @@ struct Meeting::Private
         QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
         m_waiting.setSingleShot(true);
     }
-    
+
     bool hasStarted() const { return m_state != State::None; }
-    
+
     void addParticipant(const QString& s)
     {
         m_participants.append(s);
@@ -88,7 +88,7 @@ struct Meeting::Private
             m_participantsDone.insert(m_bot->botUser());
         }
     }
-    
+
     bool isNew(const QString& s) { return !m_participantsDone.contains(s) && !m_participants.contains(s); }
     bool isChair(const CommandArgs& cmd) { return cmd.user == m_chair; }
 
@@ -97,14 +97,14 @@ struct Meeting::Private
         m_participants.removeAll(user);
         m_participantsDone.insert(user);
     }
-    
+
     void bump(int index, const QString& user)
     {
         m_participants.removeAll(user);
         m_participantsDone.remove(user);
         m_participants.insert(index, user);
     }
-    
+
     void next()
     {
         if (m_state != State::InProgress)
@@ -126,10 +126,10 @@ struct Meeting::Private
             m_waiting.stop();
             return;
         }
-        
+
         m_current = m_participants.takeFirst();
         m_participantsDone.insert(m_current);
-        
+
         if (m_participants.count() > 0)
         {
             m_bot->message(QString("%1, you're up (after that, %2).").arg(m_current, m_participants.first()));
@@ -141,7 +141,7 @@ struct Meeting::Private
         m_reminderCount = 2;
         m_waiting.start(30000); // half a minute to reminder
     }
-    
+
     void breakout(const QString& user, QStringList b)  // Copy since we're going to modify it
     {
         if (b.count() < 1)
@@ -149,10 +149,10 @@ struct Meeting::Private
             m_bot->message(QString("Needs a breakout-Id"));
             return;
         }
-        
+
         QString breakoutId = b.takeFirst();
         QString description = b.join(' ');
-        
+
         for (auto it = m_breakouts.begin(); it != m_breakouts.end(); ++it)
         {
             if (it->id == breakoutId)
@@ -161,10 +161,10 @@ struct Meeting::Private
                 return;
             }
         }
-        
+
         // None matched, make new
         m_breakouts.append({breakoutId, description, user, QStringList{}});
-        
+
         QStringList l{QString("Breakout '%1' is registered.").arg(breakoutId)};
         if (!description.isEmpty())
         {
@@ -172,9 +172,9 @@ struct Meeting::Private
         }
         m_bot->message(l);
     }
-    
+
     void timeout();
-    
+
     Bot* m_bot;
     State m_state;
     QList<QString> m_participants;
@@ -192,7 +192,7 @@ Meeting::Meeting(Bot* bot) :
     d(new Private(bot))
 {
 }
-    
+
 Meeting::~Meeting()
 {
 }
@@ -266,6 +266,10 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 enableLogging(cmd, false);
             }
         }
+        else if ( d->m_state == State::InProgress && cmd.user == d->m_current)
+        {
+            d->next();
+        }
     }
     else if (cmd.command == QStringLiteral("skip"))
     {
@@ -305,7 +309,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                     continue;
                 }
                 // not OK means it wasn't a number, e.g. a username
-                
+
                 QString userName = m_bot->userLookup(user);
                 if (!userName.isEmpty())
                 {
@@ -467,11 +471,11 @@ void Meeting::Private::timeout()
 {
     if (--m_reminderCount < 0)
         return;
-    
+
     if (m_state == State::RollCall)
     {
         QStringList noResponse{"Roll-call reminder for"};
-        
+
         for (const auto& u : m_bot->userIds())
         {
             if (!m_participants.contains(u) && !m_participantsDone.contains(u))
@@ -479,7 +483,7 @@ void Meeting::Private::timeout()
                 noResponse.append(u);
             }
         }
-        
+
         if (noResponse.count() > 1)
         {
             m_bot->message(noResponse);
