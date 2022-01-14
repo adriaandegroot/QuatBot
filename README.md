@@ -10,7 +10,7 @@
 Once the bot is built, it supports the meeting workflow that
 **I personally** participate in. It's not a general all-purpose
 meeting-bot. The meetings are a kind of *stand-up*, that is,
-a quick status-dump and question-and-answer session. The meeting 
+a quick status-dump and question-and-answer session. The meeting
 runs as follows:
 
  - we agree on a meeting time and Matrix room
@@ -47,16 +47,16 @@ Commands that are general, not tied to the meeting:
    (*Optional*, may be disabled at build-time).
  - `~quatbot status` The bot will reply with some internal counters **and**
    the status message from each other module.
- - `~quatbot help` The bot will reply with a list of modules, or use 
+ - `~quatbot help` The bot will reply with a list of modules, or use
    `~quatbot help <name..>` for a list of commands for the named modules.
 
 Commands that are general, but only available to the bot's **operator**:
 
  - `~quatbot quit` Leave the room.
- 
- 
+
+
 ### Commands - Operators
- 
+
 The bot connects to Matrix under a given user-name. At the outset, only that
 user is a operator, so only that user can perform administrative actions.
 Other users can be added to allow better control (but really, there's not
@@ -65,7 +65,7 @@ much call for that outside of `~quit`).
 Commands related to operator status, available to all:
 
  - `~quatbot ops status` Lists current operators.
- 
+
 Commands related to operator status, only available to the **operator**:
 
  - `~quatbot ops add <name..>` Add people to the list of operators.
@@ -73,7 +73,7 @@ Commands related to operator status, only available to the **operator**:
  - `~quatbot ops remove <name..>` Remove people from the list of operators.
    You can use `-` or `deop` as synonyms for `remove`.
 
- 
+
 ### Commands - Logging
 
 The bot can log messages to a file (in `/tmp` on the machine where it is
@@ -93,7 +93,7 @@ Commands related to logging, only available to the **operator**:
    to the room. You can also add a filename, which is massaged and used
    on the host where the bot runs.
  - `~log off` Stops logging and saves the file.
- 
+
 
 ### Commands - Meeting
 
@@ -113,7 +113,7 @@ Commands related to meetings, available to all:
    (e.g. "here") are marked as present. After one minute, a repeat roll-call
    for those that have not yet responded is sent.
  - `~meeting breakout <id> [description]` Registers a breakout with the
-   given description. This is available during the meeting (not during 
+   given description. This is available during the meeting (not during
    roll-call). At the end of the meeting, any breakouts that have been
    registered are listed with their description. It's ok for *description*
    to be blank. The first person to register a breakout with a given
@@ -145,7 +145,7 @@ Commands related to meetings, available to the *chair* and **operator**:
 Commands related to meetings, available to the **operator**:
 
  - `~meeting done` Ends the meeting, no questions asked.
- 
+
 ### Commands - Coffee
 
 As an amusement, the bot also contains a *coffee* module which manages
@@ -154,8 +154,8 @@ a virtual coffee machine and a cookie jar. This has no real functionality.
 Commands related to coffee, available to all:
 
  - `~coffee status` Look in the cookie jar.
- - `~coffee coffee` Drink a cup of coffee. You can also just write
-   `~coffee`.
+ - `~coffee coffee` Drink a cup of coffee. You can also just write `~coffee`.
+ - `~coffee tea` Because there is more than one beverage. You may write `~tea`.
  - `~coffee cookie eat` Eat a cookie (if you have one). You can also just write
    `~coffee cookie` or `~cookie`.
  - `~coffee cookie give <name..>` Give cookies to other people.
@@ -170,7 +170,7 @@ Build-requirements for the bot are:
  - Qt5 (Core, Multimedia, Network)
  - libqmatrixclient
  - make or ninja or similar, and a C++ compiler
- 
+
 QuatBot expects that CMake can find libqmatrixclient through its
 `QMatrixClientConfig.cmake` file. If you don't have one (e.g. because
 of an uninstalled or bundled libqmatrixclient) you will need to
@@ -192,10 +192,10 @@ ones will be:
 
  - `-u <user>` to set the user (Matrix user-id) to connect as.
  - `-o <user>` to add additional operators at startup.
- 
+
 You may be prompted for a Matrix password. You can set it on the command-line
 with the `-p` option if you like.
- 
+
 **NOTE** that if the password is entered on the command-line, it remains
 visible in command-history and in system tools like ps(1). Only run the
 bot on a trusted host.

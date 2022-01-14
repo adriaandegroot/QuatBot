@@ -380,7 +380,8 @@ const QStringList& Coffee::moduleCommands() const
 {
     static const QStringList commands{"coffee", "cookie", "lart",
         "stats",  // long status
-        "status"  // brief status
+        "status", // brief status
+        "tea",
     };
     return commands;
 }
