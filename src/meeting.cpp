@@ -429,6 +429,7 @@ void Meeting::status() const
     l << _shortStatus(d->m_state);
     if (d->m_state != State::None)
     {
+        l << QString("It is %1 (time UTC).").arg(QDateTime::currentDateTimeUtc().toString());
         l << QString("Chaired by %1.").arg(d->m_chair)
             << QString("There are %1 participants left.").arg(d->m_participants.count());
         // Here > 1 because the bot itself is always "done"
