@@ -6,20 +6,28 @@
 # This bot is carefully tuned to my personal needs in a chatbot,
 # so it does meeting support, mostly.
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 
 project(quatbot VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(COWSAY "Enables the ~cowsay command (requires /usr/local/bin/cowsay)" OFF)
+option(
+    COWSAY
+    "Enables the ~cowsay command (requires /usr/local/bin/cowsay)"
+    OFF
+)
 option(COFFEE "Enables the ~coffee module" ON)
 
 find_package(Qt5 5.15 REQUIRED COMPONENTS Core Gui Multimedia Network)
 find_package(Quotient 0.6.5 REQUIRED)
 
-set(quatbot_SRCS
+### TARGETS
+#
+#
+add_executable(
+    quatbot
     src/main.cpp
     src/log_impl.cpp
     src/command.cpp
@@ -28,37 +36,18 @@ set(quatbot_SRCS
     src/quatbot.cpp
     src/watcher.cpp
 )
+target_link_libraries(quatbot PUBLIC Quotient Qt5::Core Qt5::Network)
+
+add_executable(qb-dumper src/dumper.cpp src/dumpbot.cpp src/log_impl.cpp)
+target_link_libraries(qb-dumper PUBLIC Quotient Qt5::Core Qt5::Network)
 
 ### OPTIONS HANDLING
 #
 #
 if(COFFEE)
-    list(APPEND quatbot_SRCS src/coffee.cpp)
-    add_definitions(-DENABLE_COFFEE)
+    target_sources(quatbot PUBLIC src/coffee.cpp)
+    target_compile_definitions(quatbot PUBLIC ENABLE_COFFEE)
 endif()
 if(COWSAY)
-    add_definitions(-DENABLE_COWSAY)
+    target_compile_definitions(quatbot PUBLIC DENABLE_COWSAY)
 endif()
-
-### TARGETS
-#
-#
-add_executable(quatbot ${quatbot_SRCS})
-target_link_libraries(quatbot
-    PUBLIC
-        Quotient
-        Qt5::Core
-        Qt5::Network
-)
-
-add_executable(qb-dumper
-    src/dumper.cpp
-    src/dumpbot.cpp
-    src/log_impl.cpp
-)
-target_link_libraries(qb-dumper
-    PUBLIC
-        Quotient
-        Qt5::Core
-        Qt5::Network
-)
