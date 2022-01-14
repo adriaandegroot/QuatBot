@@ -47,6 +47,15 @@ namespace
 }
 namespace QuatBot
 {
+struct OptionalAnd {};
+QStringList& operator << (QStringList& l, const OptionalAnd& a)
+{
+    if (l.count() > 1)
+    {
+        l << "and";
+    }
+    return l;
+}
 
 class CoffeeStats
 {
@@ -89,16 +98,24 @@ public:
     {
         for (const auto& u : m_stats)
         {
-            QStringList info{QString("%1 has had %2 cups of coffee").arg(u.m_user).arg(u.m_coffee)};
+            QStringList info{u.m_user};
+            if (u.m_coffee > 0)
+            {
+                info << OptionalAnd{} << QString("has had %1 cups of coffee").arg(u.m_coffee);
+            }
+            if (u.m_tea > 0)
+            {
+                info << OptionalAnd{} << QString("has had %1 cups of tea").arg(u.m_tea);
+            }
             if (u.m_cookie > 0)
             {
-                info << QString("and has %1 cookies").arg(u.m_cookie);
+                info << OptionalAnd{} << QString("has %1 cookies").arg(u.m_cookie);
             }
             if (u.m_cookieEated > 0)
             {
-                info << QString("and has eaten %1 cookies").arg(u.m_cookieEated);
+                info << OptionalAnd{} << QString("has eaten %1 cookies").arg(u.m_cookieEated);
             }
-            info << "so far.";
+            info << ".";
             bot->message(info);
         }
     }
