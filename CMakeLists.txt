@@ -17,7 +17,7 @@ option(COWSAY "Enables the ~cowsay command (requires /usr/local/bin/cowsay)" OFF
 option(COFFEE "Enables the ~coffee module" ON)
 
 find_package(Qt5 5.10 REQUIRED COMPONENTS Core Gui Multimedia Network)
-find_package(Quotient REQUIRED)
+find_package(Quotient 0.6.5 REQUIRED)
 
 set(quatbot_SRCS
     src/main.cpp
