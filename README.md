@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText:  Copyright 2019 Adriaan de Groot <groot@kde.org>
+     SPDX-License-Identifier: BSD-2-Clause
+-->
+
 # QuatBot
 
 > QuatBot is a simple meeting-management bot for use with the Matrix.
