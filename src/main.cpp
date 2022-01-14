@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "quatbot.h"
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     QCoreApplication app(argc, argv);
     app.setApplicationName("QuatBot");
     app.setApplicationVersion("0.8");
-    
+
     QCommandLineOption userOption( QStringList{"u", "user"},
         "User to use to connect.", "user");
     QCommandLineOption passOption( QStringList{"p", "password"},
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     parser.addOption(operatorOption);
     parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
     parser.process(app);
-    
+
     if (parser.positionalArguments().count() < 1)
     {
         qWarning() << "Usage: quatbot <options> <room..>\n"
@@ -65,17 +65,17 @@ int main(int argc, char** argv)
     );
 
     QMatrixClient::Connection conn;
-    conn.connectToServer(parser.value(userOption), 
-        parser.isSet(passOption) ? parser.value(passOption) : QString(getpass("Matrix password: ")), 
+    conn.connectToServer(parser.value(userOption),
+        parser.isSet(passOption) ? parser.value(passOption) : QString(getpass("Matrix password: ")),
         "quatbot");  // user pass device
-    
+
     QObject::connect(&conn,
         &QMatrixClient::Connection::connected,
         [&]()
         {
             qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
-            conn.setLazyLoading(false);
-            conn.syncLoop(30);
+            conn.setLazyLoading(true);
+            conn.syncLoop();
             for (const auto& r: parser.positionalArguments())
             {
                 // Unused, gets cleaned up by itself
@@ -90,6 +90,6 @@ int main(int argc, char** argv)
             QTimer::singleShot(0, qApp, &QCoreApplication::quit);
         }
     );
-   
+
     return app.exec();
 }

@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "command.h"
 
@@ -45,11 +45,11 @@ static QString cowsay(QString message)
 
     static int instance = 0;
     static const char* const specials[16]={
-        nullptr, nullptr, "-d", nullptr, 
-        nullptr, nullptr, "-s", "-p", 
+        nullptr, nullptr, "-d", nullptr,
+        nullptr, nullptr, "-s", "-p",
         nullptr, "-y", nullptr, "-g",
         "-w", "-t", "-b", nullptr};
-    
+
     QStringList arg;
     // Go around and around mod 16
     if (specials[instance])
@@ -57,7 +57,7 @@ static QString cowsay(QString message)
     instance = (instance+1) & 0xf;
     // The message
     arg << message;
-    
+
     return runProcess(QStringLiteral("/usr/local/bin/cowsay"), arg, "Moo!");
 }
 #endif
@@ -118,7 +118,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
         }
         else if ((l.args[0] == "?") || (l.args[0] == "status"))
         {
-            message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
+            message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.values());
         }
         else if ((l.args[0] == "+") || (l.args[0] == "add") || (l.args[0] == "op"))
         {
@@ -188,7 +188,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
 
 void QuatBot::BasicCommands::handleMessage(const Quotient::RoomMessageEvent* event)
 {
-    m_lastMessageTime = event->timestamp().time();
+    m_lastMessageTime = event->originTimestamp().time();
     m_messageCount++;
 }
 
@@ -196,11 +196,11 @@ void BasicCommands::opsChange(const CommandArgs& cmd, bool enable)
 {
     if (m_bot->checkOps(cmd))
     {
-        if (cmd.args.count() > 1) 
+        if (cmd.args.count() > 1)
         {
             CommandArgs a(cmd);
             a.pop();
-            
+
             for (const auto& user : m_bot->userLookup(a.args))
             {
                 if (user.isEmpty())

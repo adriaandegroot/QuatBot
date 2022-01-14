@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "watcher.h"
 
@@ -24,8 +24,11 @@ CommandArgs::CommandArgs(QString s)
     {
         QStringList parts = s.remove(0,1).split(' ');
         QStringList r;
+        // Skipping over the first, that's the command
         for (int i=1; i<parts.count(); ++i)
+        {
             r << munge(parts[i]);
+        }
 
         command = munge(parts[0]);
         args = r;

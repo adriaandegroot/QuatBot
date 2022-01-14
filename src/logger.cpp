@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "logger.h"
 
@@ -22,7 +22,7 @@ class Logger::Private
 public:
     Private();
     virtual ~Private();
-    
+
     void log(const QMatrixClient::RoomMessageEvent* message);
     void log(const QString& s);
     void report(Bot*);
@@ -38,12 +38,12 @@ public:
         return m_file ? m_file->fileName() : QString();
     }
     void flush();
-    
+
 private:
     QFile* m_file = nullptr;
     QTextStream* m_stream = nullptr;
     int m_lines;
-    
+
     QString makeName(QString);  // Copied because it is modified in the method
 };
 
@@ -76,7 +76,7 @@ void Logger::Private::close()
 void Logger::Private::open(const QString& name)
 {
     close();
-    
+
     QFile* f = new QFile(makeName(name));
     if (!f)
     {
@@ -89,9 +89,9 @@ void Logger::Private::open(const QString& name)
         delete f;
         return;
     }
-    
+
     m_file = f;
-    
+
     QTextStream* t = new QTextStream(m_file);
     if (!t)
     {
@@ -101,7 +101,7 @@ void Logger::Private::open(const QString& name)
     }
     m_stream = t;
     m_lines = 0;
-    
+
     qDebug() << "Logging to" << m_file->fileName();
 }
 
@@ -128,7 +128,7 @@ void logX(stream& s, QString timestamp, QString sender, QString message)
     if (sender.contains(':'))
         sender.truncate(sender.indexOf(':'));
     sender.truncate(12);
-    
+
     // Just the HH:mm:ss
     s << timestamp.right(8).leftJustified(8)
         << ' ' << sender.leftJustified(12) << '\t';
@@ -141,7 +141,7 @@ void logX(stream& s, QString timestamp, QString sender, QString message)
             if (!first)
             {
                 // 8, space, 12, tab
-                s << "        " << ' ' << "            " << '\t'; 
+                s << "        " << ' ' << "            " << '\t';
             }
             first = false;
             s << p << '\n';
@@ -161,7 +161,7 @@ void Logger::Private::log(const QString& s)
         ++m_lines;
         logX(*m_stream, QString(), QStringLiteral("*BOT*"), s);
     }
-    
+
     auto d = qDebug().noquote().nospace();
     logX(d, QString(), QStringLiteral("*BOT*"), s);
 }
@@ -171,11 +171,11 @@ void Logger::Private::log(const QMatrixClient::RoomMessageEvent* message)
     if (m_stream)
     {
         ++m_lines;
-        logX(*m_stream, message->timestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
+        logX(*m_stream, message->originTimestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
     }
-    
+
     auto d = qDebug().noquote().nospace();
-    logX(d, message->timestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
+    logX(d, message->originTimestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
 }
 
 void Logger::Private::report(Bot* bot)
@@ -191,7 +191,7 @@ void Logger::Private::report(Bot* bot)
     else
         bot->message(QString("(log) Logging to %1").arg(m_file->fileName()));
 }
-        
+
 
 QString Logger::Private::makeName(QString s)
 {
