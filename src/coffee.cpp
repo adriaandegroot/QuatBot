@@ -16,6 +16,35 @@
 #include <QStandardPaths>
 #include <QTimer>
 
+namespace
+{
+    static constexpr const qint32 MAGIC = 0xcafe;
+
+    void check_trailer(QDataStream& d)
+    {
+        QString user;
+        qint32 count;
+
+        // Check trailer?
+        d >> count;
+        if (count != 0)
+        {
+            qWarning() << "Trailer 1 corrupt.";
+            return;
+        }
+        d >> count;
+        if (count != MAGIC)
+        {
+            qWarning() << "Trailer 2 corrupt.";
+            return;
+        }
+        d >> user;
+        if (user != "Koffiepot")
+        {
+            qWarning() << "Trailer 3 corrupt.";
+        }
+    }
+}
 namespace QuatBot
 {
 
@@ -32,6 +61,7 @@ public:
 
     QString m_user;
     int m_coffee = 0;
+    int m_tea = 0;
     int m_cookie = 0;
     int m_cookieEated = 0;
 };
@@ -81,6 +111,14 @@ public:
         AutoSave a(this);
         auto& c = find(user);
         return ++c.m_coffee;
+    }
+
+    /// @brief Give @p user some tea; returns their tea count
+    int tea(const QString& user)
+    {
+        AutoSave a(this);
+        auto& c = find(user);
+        return ++c.m_tea;
     }
 
     /// @brief Give @p user a cookie from the jar; returns true on success
@@ -139,8 +177,6 @@ public:
         return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), m_saveFileName);
     }
 
-    static constexpr const qint32 MAGIC = 0xcafe;
-
     void save() const
     {
         const auto [dataDirName, saveFileName] = dataLocation();
@@ -186,7 +222,7 @@ public:
         }
         else
         {
-            saveV1(QDataStream(&saveFile));
+            saveVCurrent(QDataStream(&saveFile));
             saveFile.close();
         }
     }
@@ -209,13 +245,16 @@ public:
             }
             d >> magic >> when;
             qDebug() << "Loading save file v" << magic <<"from" << when.toString();
-            if (magic == 1)
+            switch(magic)
             {
-                loadV1(d);
-            }
-            else
-            {
-                qWarning() << "Save file has unknown version" << magic;
+                case 1:
+                    loadV1(d);
+                    break;
+                case 2:
+                    loadV2(d);
+                    break;
+                default:
+                    qWarning() << "Save file has unknown version" << magic;
             }
         }
     }
@@ -239,16 +278,16 @@ private:
         }
     }
 
-    void saveV1(QDataStream d) const
+    void saveVCurrent(QDataStream d) const
     {
         d << qint32(MAGIC);   // Coffee!
-        d << qint32(1);       // Version 1
+        d << qint32(2);       // Version 2
         d << QDateTime::currentDateTime();  // When?
 
         d << qint32(m_stats.count());   // Number of elements
         for (const auto& u : m_stats)
         {
-            d << u.m_user << qint32(u.m_coffee) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
+            d << u.m_user << qint32(u.m_coffee) << qint32(u.m_tea) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
         }
 
         d << qint32(0) << qint32(MAGIC);
@@ -274,30 +313,43 @@ private:
             d >> user >> coffee >> cookie >> eated;
             auto& u = find(user);
             u.m_coffee = coffee;
+            u.m_tea = 0;  // There was no tea in V1
             u.m_cookie = cookie;
             u.m_cookieEated = eated;
 
             count--;
         }
 
-        // Check trailer?
+        check_trailer(d);
+    }
+
+    void loadV2(QDataStream& d)
+    {
+        qint32 count;
+
+        QString user;
+        qint32 coffee, tea, cookie, eated;
+
         d >> count;
-        if (count != 0)
+        if ((count < 1) || (count > 1000))
         {
-            qWarning() << "Trailer 1 corrupt.";
+            qWarning() << "Unreasonable coffee-count" << count;
             return;
         }
-        d >> count;
-        if (count != MAGIC)
+
+        while(count>0)
         {
-            qWarning() << "Trailer 2 corrupt.";
-            return;
+            d >> user >> coffee >> tea >> cookie >> eated;
+            auto& u = find(user);
+            u.m_coffee = coffee;
+            u.m_tea = tea;
+            u.m_cookie = cookie;
+            u.m_cookieEated = eated;
+
+            count--;
         }
-        d >> user;
-        if (user != "Koffiepot")
-        {
-            qWarning() << "Trailer 3 corrupt.";
-        }
+
+        check_trailer(d);
     }
 
     int m_cookiejar = 12;  // a dozen cookies by default
@@ -413,10 +465,10 @@ void Coffee::handleCommand(const CommandArgs& cmd)
         sub.pop();
         handleCookieCommand(sub);
     }
+    // The empty case is when you enter just ~coffee. That's interpreted
+    // as a module name, and the command goes away.
     else if ((cmd.command == QStringLiteral("coffee")) || (cmd.command.isEmpty()))
     {
-        // The empty case is when you enter just ~coffee. That's interpreted
-        // as a module name, and the command goes away.
         if (d->coffee(cmd.user) <= 1)
         {
             message(QStringList{cmd.user, "is now a coffee drinker."});
@@ -429,6 +481,17 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     else if (cmd.command == QStringLiteral("lart"))
     {
         message(QString("%1 is eaten by a large trout.").arg(cmd.user));
+    }
+    else if (cmd.command == QStringLiteral("tea"))
+    {
+        if (d->tea(cmd.user) <= 1)
+        {
+            message(QStringList{cmd.user, "subscribes to Professor Elemental's newsletter."});
+        }
+        else
+        {
+            message(QString("When I say 'Assam' you say 'lovely'."));
+        }
     }
     else
     {
