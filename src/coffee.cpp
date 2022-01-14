@@ -96,8 +96,14 @@ public:
 
     void stats(Bot* bot)
     {
+        const auto roomUsers = bot->userIds();
         for (const auto& u : m_stats)
         {
+            if (!roomUsers.contains(u.m_user))
+            {
+                // We have data on a user, but they are no longer in the room
+                continue;
+            }
             QStringList info{u.m_user};
             if (u.m_coffee > 0)
             {
