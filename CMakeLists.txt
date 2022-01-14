@@ -21,6 +21,7 @@ find_package(Quotient 0.6.5 REQUIRED)
 
 set(quatbot_SRCS
     src/main.cpp
+    src/log_impl.cpp
     src/command.cpp
     src/logger.cpp
     src/meeting.cpp
@@ -44,6 +45,18 @@ endif()
 #
 add_executable(quatbot ${quatbot_SRCS})
 target_link_libraries(quatbot
+    PUBLIC
+        Quotient
+        Qt5::Core
+        Qt5::Network
+)
+
+add_executable(qb-dumper
+    src/dumper.cpp
+    src/dumpbot.cpp
+    src/log_impl.cpp
+)
+target_link_libraries(qb-dumper
     PUBLIC
         Quotient
         Qt5::Core

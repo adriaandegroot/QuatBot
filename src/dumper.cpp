@@ -2,15 +2,15 @@
  *  SPDX-License-Identifier: BSD-2-Clause
  *  SPDX-License-File: LICENSE
  *
- * Copyright 2019 Adriaan de Groot <groot@kde.org>
+ * Copyright 2019, 2021 Adriaan de Groot <groot@kde.org>
  */
 
-/* This is the main entry for QuatBot, the meeting-management bot
- * for Matrix channels. It sets up command-line arguments, then
- * creates bot instances for each channel named, and then leaves
- * the rest to the Quotient library.
+/* This is the main entry for QuatBot-Dumper, the history-logging helper
+ * for Matrix channels. Its primary use is "I ran a meeting last week
+ * but lost the logs, what now".
  */
-#include "quatbot.h"
+
+#include "dumpbot.h"
 
 // For password-prompt
 #include <pwd.h>
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     QCommandLineOption operatorOption( QStringList{"o", "operator"},
         "Additional user-id to consider as operator.", "userid");
     QCommandLineParser parser;
-    parser.setApplicationDescription("Chatbot for meeting-management on Matrix");
+    parser.setApplicationDescription("History-dumper on Matrix");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption(userOption);
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
     if (parser.positionalArguments().count() < 1)
     {
-        qWarning() << "Usage: quatbot <options> <room..>\n"
+        qWarning() << "Usage: qb-dumper <options> <room..>\n"
             "  Give at least one room name.\n";
         return 1;
     }
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
             for (const auto& r: parser.positionalArguments())
             {
                 // Unused, gets cleaned up by itself
-                QuatBot::Bot* bot = new QuatBot::Bot(conn, r, parser.values(operatorOption));
+                auto* bot = new QuatBot::DumpBot(conn, r, parser.values(operatorOption));
             }
         }
     );
