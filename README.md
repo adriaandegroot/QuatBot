@@ -211,3 +211,11 @@ Logs are written to `/tmp`, in files named `quatbot-<something>.log`.
 Meeting logs end up in nicely-named year-and-week logs, others will
 get a timestamp or message-id as `<something>`. Note that people
 abusing `~log` may create a lot of log files locally.
+
+## Dumper
+
+There is an additional executable, qb-dumper, which connects to a room and
+then logs it. It doesn't do anything else. It happens to get the last
+100 lines of history as well (under normal circumstances) which makes
+it "get" a bit of the past. This was added to be able to salvage the
+log of a meeting from the past, and is of limited functionality.
