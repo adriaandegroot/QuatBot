@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #include "quatbot.h"
 
@@ -45,12 +45,12 @@ QStringList splitUserName(const QString& s)
 }
 
 /** @brief Pair of Matrix-Id and split-up displayname.
- * 
+ *
  * This is used in matching names to Matrix-Ids: a command can name
  * a user, either by Matrix-Id or by nickname. Since nicknames may
  * be more than one word, we need to be able to match, say
  * `@adridg:matirx.org` with the nickname *adridg the bot*.
- * 
+ *
  * To do that, we'll sort nicknames in the room by length,
  * longest first, so that *adridg the bot* and *adridg* are
  * treated separately (and using the long nickname won't match
@@ -74,7 +74,7 @@ bool operator<(const DisplayName& a, const DisplayName& b)
     {
         return false;
     }
-   
+
     // Equal length
     for (int i=0; i < a.displayName.count(); ++i)
     {
@@ -93,7 +93,7 @@ bool operator<(const DisplayName& a, const DisplayName& b)
 QStringList Bot::userLookup(const QStringList& users)
 {
     QStringList ids;
-    
+
     if (!m_room)
         return ids;
 
@@ -104,7 +104,7 @@ QStringList Bot::userLookup(const QStringList& users)
         idToDisplayName.append({u->id(), splitUserName(u->displayname(m_room))});
     }
     std::sort(idToDisplayName.begin(), idToDisplayName.end());
-    
+
     int i = 0;
     while (i < users.count())
     {
@@ -149,25 +149,25 @@ QStringList Bot::userLookup(const QStringList& users)
     }
     return ids;
 }
-    
+
 QString Bot::userLookup(const QString& userName)
 {
     if (!m_room)
         return QString();
-    
+
     QString n = userName.trimmed();
     if (n.isEmpty())
         return QString();
-    
+
     if (n.startsWith('@') && n.contains(':'))
         return n;
-    
+
     for (const auto& u : m_room->users())
     {
         if (n == u->displayname(m_room))
             return u->id();
     }
-    
+
     return QString();
 }
 
@@ -176,7 +176,7 @@ QStringList Bot::userIds()
     QStringList l;
     if (!m_room)
         return l;
-    
+
     for (const auto& u : m_room->users())
     {
         l << u->id();
@@ -211,7 +211,7 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
         bailOut();
         return;
     }
-        
+
     auto* joinRoom = conn.joinRoom(roomName);
     if (!joinRoom)
     {
@@ -219,9 +219,9 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
         bailOut();
         return;
     }
-    
+
     connect(joinRoom, &QMatrixClient::BaseJob::failure,
-        [this]() 
+        [this]()
         {
             qWarning() << "Joining room" << this->m_roomName << "failed.";
             bailOut();
@@ -231,7 +231,7 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
         [this, joinRoom]()
         {
             setupWatchers();
-            
+
             qDebug() << "Joined room" << this->m_roomName << "successfully.";
             m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
             if (!m_room)
@@ -250,27 +250,29 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
             }
         }
     );
-    
+
     setOps(conn.userId(), true);
     for (const auto& u : ops)
     {
         setOps(u, true);
     }
 }
-    
+
 Bot::~Bot()
 {
     if(m_room)
+    {
         m_room->leaveRoom();
+    }
     qDeleteAll(m_watchers);
-    
+
     instance_count--;
     if (instance_count<1)
     {
         bailOut(3000);  // give some time for messages to be delivered
     }
 }
-    
+
 void Bot::baseStateLoaded()
 {
     if (m_newlyConnected)
@@ -282,7 +284,7 @@ void Bot::baseStateLoaded()
             << "topic=" << m_room->topic();
     }
 }
-    
+
 /// @brief RAII helper to always flush bot messages
 class Flusher
 {
@@ -302,7 +304,7 @@ void Bot::addedMessages(int from, int to)
         m_room->markMessagesAsRead(m_room->readMarkerEventId());
         return;
     }
-    
+
     bool first = true;
     const auto& timeline = m_room->messageEvents();
     for (int it=from; it<=to; ++it)
@@ -319,7 +321,7 @@ void Bot::addedMessages(int from, int to)
             {
                 w->handleMessage(event);
             }
-            
+
             CommandArgs cmd(event);
             if (cmd.isValid())
             {
@@ -335,8 +337,8 @@ void Bot::addedMessages(int from, int to)
                         break;
                     }
                 }
-                
-                if (handled) 
+
+                if (handled)
                 {
                     continue;
                 }
@@ -356,7 +358,7 @@ void Bot::addedMessages(int from, int to)
                             break;
                         }
                     }
-                
+
                     if (!handled)
                     {
                         message(QString("I don't understand '%1'.").arg(cmd.command));
@@ -439,7 +441,7 @@ void Bot::message(Bot::Flush)
         m_accumulatedMessages.clear();
     }
 }
-        
+
 Watcher* Bot::getWatcher(const QString& name)
 {
     for (const auto& w : m_watchers)
@@ -470,7 +472,7 @@ void Bot::setupWatchers()
 #ifdef ENABLE_COFFEE
     m_watchers.append(new Coffee(this));
 #endif
-    
+
     QSet<QString> commands;
     for (const auto& w : m_watchers)
     {
@@ -486,7 +488,7 @@ void Bot::setupWatchers()
             }
         }
     }
-    
+
     // Except that the "basic commands" are always interpreted by basic (because it's first)
     // so those are not considered ambiguous.
     m_ambiguousCommands.subtract(QSet<QString>::fromList(m_watchers[0]->moduleCommands()));
