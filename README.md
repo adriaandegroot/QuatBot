@@ -170,14 +170,14 @@ Commands related to coffee, available to all:
 ## Building
 
 Build-requirements for the bot are:
- - CMake
- - Qt5 (Core, Multimedia, Network)
- - libqmatrixclient
+ - CMake, https://cmake.org/
+ - Qt5 (Core, Multimedia, Network), https://www.qt.io/
+ - libQuotient, https://github.com/quotient-im/libQuotient
  - make or ninja or similar, and a C++ compiler
 
-QuatBot expects that CMake can find libqmatrixclient through its
-`QMatrixClientConfig.cmake` file. If you don't have one (e.g. because
-of an uninstalled or bundled libqmatrixclient) you will need to
+QuatBot expects that CMake can find libQuotient though its
+`QuotientConfig.cmake` file. If you don't have one (e.g. because
+of an uninstalled or bundled libQuotient) you will need to
 mess around with `-D` flags to CMake to tell it where the library
 lives. I don't know what flags those are, though.
 
@@ -202,7 +202,7 @@ with the `-p` option if you like.
 
 **NOTE** that if the password is entered on the command-line, it remains
 visible in command-history and in system tools like ps(1). Only run the
-bot on a trusted host.
+bot that way on a trusted host.
 
 Example for a full command-line (note the `'` around each argument
 to avoid shell processing of special characters):
