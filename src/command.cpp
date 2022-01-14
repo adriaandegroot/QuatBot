@@ -118,7 +118,7 @@ void BasicCommands::handleCommand(const CommandArgs& l)
         }
         else if ((l.args[0] == "?") || (l.args[0] == "status"))
         {
-            message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.toList());
+            message(QStringList{QString("There are %1 operators.").arg(m_bot->m_operators.count())} << m_bot->m_operators.values());
         }
         else if ((l.args[0] == "+") || (l.args[0] == "add") || (l.args[0] == "op"))
         {

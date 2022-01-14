@@ -33,7 +33,7 @@ namespace QuatBot
 QStringList splitUserName(const QString& s)
 {
     QStringList l;
-    for (QString part : s.split(' ', QString::SkipEmptyParts))
+    for (QString part : s.split(' ', Qt::SkipEmptyParts))
     {
         QString shortPart = part.trimmed();
         if (!shortPart.isEmpty())
@@ -463,6 +463,11 @@ QStringList Bot::watcherNames() const
     return names;
 }
 
+static QSet<QString> commandSet(const QStringList& commands)
+{
+    return QSet<QString>(commands.begin(), commands.end());
+}
+
 void Bot::setupWatchers()
 {
     m_watchers.reserve(6);
@@ -491,7 +496,7 @@ void Bot::setupWatchers()
 
     // Except that the "basic commands" are always interpreted by basic (because it's first)
     // so those are not considered ambiguous.
-    m_ambiguousCommands.subtract(QSet<QString>::fromList(m_watchers[0]->moduleCommands()));
+    m_ambiguousCommands.subtract(commandSet(m_watchers[0]->moduleCommands()));
 }
 
 }  // namespace
