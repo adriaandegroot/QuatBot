@@ -1,0 +1,12 @@
+<!-- SPDX-FileCopyrightText: no
+     SPDX-License-Identifier: CC0-1.0
+-->
+
+This is the changelog for QuatBot. For each release, the major changes and
+contributors are listed.
+
+# 0.2 (2022-01-14) #
+
+- First publicised release of QuatBot
+- Requires modern(ish) CMake, Qt, libQuotient
+- Now supports tea **and** coffee
