@@ -177,6 +177,7 @@ QStringList Bot::userIds()
     if (!m_room)
         return l;
 
+    m_room->setDisplayed(true);
     for (const auto& u : m_room->users())
     {
         l << u->id();
@@ -243,6 +244,7 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
             {
                 m_room->checkVersion();
                 qDebug() << "Room version" << m_room->version();
+                m_room->setDisplayed(true);  // Force non-lazy load
                 // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
                 QTimer::singleShot(10000, this, &Bot::baseStateLoaded);
                 connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
