@@ -79,7 +79,7 @@ int main(int argc, char** argv)
         [&]()
         {
             qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
-            conn.setLazyLoading(true);
+            conn.setLazyLoading(false);
             conn.syncLoop();
             for (const auto& r: parser.positionalArguments())
             {
