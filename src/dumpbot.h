@@ -48,12 +48,23 @@ public:
     /// @brief Room name this bot is attached to
     QString botRoom() const { return m_roomName; }
 
+    /** @brief Sets the show-users-only property
+     *
+     * When set to @c true, the bot will display only users
+     * in the room, then exit; it will not dump messages.
+     * Call this early on in the connection setup, or messages
+     * may have been dumped already.
+     */
+    void setShowUsersOnly(bool u);
+
 protected:
     /// @brief Called once the room is loaded for the first time.
     void baseStateLoaded();
     /// @brief Messages delivered by quotient
     void addedMessages(int from, int to);
 
+    /// @brief Prints a list of users in the room (exit if m_showUsersOnly is set)
+    void showUsers();
 
 private:
     Quotient::Room* m_room = nullptr;
@@ -62,6 +73,7 @@ private:
 
     QString m_roomName;
     bool m_newlyConnected = true;
+    bool m_showUsersOnly = false;
 };
 }  // namespace
 

@@ -40,6 +40,21 @@ QStringList DumpBot::userIds()
     return l;
 }
 
+void DumpBot::showUsers()
+{
+    QStringList l = userIds();
+    l.sort();
+    for (const auto& u : l)
+    {
+        m_logger->log(u);
+    }
+    if (m_showUsersOnly)
+    {
+        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+    }
+}
+
+
 QString DumpBot::botUser() const
 {
     return m_conn.userId();
@@ -137,13 +152,16 @@ void DumpBot::baseStateLoaded()
             << "id=" << m_room->id()
             << "name=" << m_room->displayName()
             << "topic=" << m_room->topic();
+        if (m_showUsersOnly)
+        {
+            showUsers();
+        }
     }
 }
 
-void DumpBot::addedMessages(int from, int to)
+void log_messages(const Quotient::Room::Timeline& timeline, int from, int to, LoggerFile& logger)
 {
     bool first = true;
-    const auto& timeline = m_room->messageEvents();
     for (int it=from; it<=to; ++it)
     {
         const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
@@ -154,11 +172,29 @@ void DumpBot::addedMessages(int from, int to)
                 qDebug() << "Room messages" << from << '-' << to << event->originTimestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
                 first = false;
             }
-            m_logger->log(event);
+            logger.log(event);
         }
+    }
+}
+
+void DumpBot::addedMessages(int from, int to)
+{
+    const auto& timeline = m_room->messageEvents();
+    if (!m_showUsersOnly)
+    {
+        log_messages(timeline, from, to, *m_logger);
     }
     m_room->markMessagesAsRead(timeline[to]->id());
     m_logger->flush();
+}
+
+void DumpBot::setShowUsersOnly(bool u)
+{
+    m_showUsersOnly = u;
+    if (!m_newlyConnected && u)
+    {
+        showUsers();
+    }
 }
 
 

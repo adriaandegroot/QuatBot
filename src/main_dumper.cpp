@@ -42,12 +42,15 @@ int main(int argc, char** argv)
         "User to use to connect.", "user");
     QCommandLineOption passOption( QStringList{"p", "password"},
         "Password to use to connect (will prompt if unset).", "password");
+    QCommandLineOption usersOnlyOption( QStringList{"l", "list-users"},
+                                         "List users in the room, then exit." );
     QCommandLineParser parser;
     parser.setApplicationDescription("History-dumper on Matrix");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption(userOption);
     parser.addOption(passOption);
+    parser.addOption(usersOnlyOption);
     parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
     parser.process(app);
 
@@ -82,6 +85,7 @@ int main(int argc, char** argv)
             {
                 // Unused, gets cleaned up by itself
                 auto* bot = new QuatBot::DumpBot(conn, r);
+                bot->setShowUsersOnly(parser.isSet(usersOnlyOption));
             }
         }
     );
