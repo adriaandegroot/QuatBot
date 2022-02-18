@@ -32,6 +32,7 @@ QStringList DumpBot::userIds()
     if (!m_room)
         return l;
 
+    m_room->setDisplayed(true);
     for (const auto& u : m_room->users())
     {
         l << u->id();
@@ -99,6 +100,7 @@ DumpBot::DumpBot(QMatrixClient::Connection& conn, const QString& roomName, const
             {
                 m_room->checkVersion();
                 qDebug() << "Room version" << m_room->version();
+                m_room->setDisplayed(true);
                 // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
                 QTimer::singleShot(10000, this, &DumpBot::baseStateLoaded);
                 connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &DumpBot::baseStateLoaded);

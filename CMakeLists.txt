@@ -38,7 +38,7 @@ add_executable(
 )
 target_link_libraries(quatbot PUBLIC Quotient Qt5::Core Qt5::Network)
 
-add_executable(qb-dumper src/dumper.cpp src/dumpbot.cpp src/log_impl.cpp)
+add_executable(qb-dumper src/main_dumper.cpp src/dumpbot.cpp src/log_impl.cpp)
 target_link_libraries(qb-dumper PUBLIC Quotient Qt5::Core Qt5::Network)
 
 ### OPTIONS HANDLING
