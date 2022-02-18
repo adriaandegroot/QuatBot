@@ -50,7 +50,7 @@ void DumpBot::showUsers()
     }
     if (m_showUsersOnly)
     {
-        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+        QTimer::singleShot(100, qApp, &QCoreApplication::quit);
     }
 }
 
