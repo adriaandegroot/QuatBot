@@ -61,19 +61,18 @@ QString DumpBot::botUser() const
 }
 
 
-
 static int instance_count = 0;
 
-static void bailOut(int timeout=0)
+static void bailOut(int timeout = 0)
 {
     QTimer::singleShot(timeout, qApp, &QCoreApplication::quit);
 }
 
 
-DumpBot::DumpBot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops) :
-        QObject(),
-        m_conn(conn),
-        m_roomName(roomName)
+DumpBot::DumpBot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops)
+    : QObject()
+    , m_conn(conn)
+    , m_roomName(roomName)
 {
     instance_count++;
     if (conn.homeserver().isEmpty() || !conn.homeserver().isValid())
@@ -94,35 +93,35 @@ DumpBot::DumpBot(QMatrixClient::Connection& conn, const QString& roomName, const
     m_logger = new LoggerFile;
     m_logger->open(QString());  // Default name
 
-    connect(joinRoom, &QMatrixClient::BaseJob::failure,
-        [this]()
-        {
-            qWarning() << "Joining room" << this->m_roomName << "failed.";
-            bailOut();
-        }
-    );
-    connect(joinRoom, &QMatrixClient::BaseJob::success,
-        [this, joinRoom]()
-        {
-            qDebug() << "Joined room" << this->m_roomName << "successfully.";
-            m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
-            if (!m_room)
+    connect(joinRoom,
+            &QMatrixClient::BaseJob::failure,
+            [this]()
             {
-                qDebug() << ".. pending invite, giving up already.";
+                qWarning() << "Joining room" << this->m_roomName << "failed.";
                 bailOut();
-            }
-            else
+            });
+    connect(joinRoom,
+            &QMatrixClient::BaseJob::success,
+            [this, joinRoom]()
             {
-                m_room->checkVersion();
-                qDebug() << "Room version" << m_room->version();
-                m_room->setDisplayed(true);
-                // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
-                QTimer::singleShot(10000, this, &DumpBot::baseStateLoaded);
-                connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &DumpBot::baseStateLoaded);
-                connect(m_room, &QMatrixClient::Room::addedMessages, this, &DumpBot::addedMessages);
-            }
-        }
-    );
+                qDebug() << "Joined room" << this->m_roomName << "successfully.";
+                m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
+                if (!m_room)
+                {
+                    qDebug() << ".. pending invite, giving up already.";
+                    bailOut();
+                }
+                else
+                {
+                    m_room->checkVersion();
+                    qDebug() << "Room version" << m_room->version();
+                    m_room->setDisplayed(true);
+                    // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
+                    QTimer::singleShot(10000, this, &DumpBot::baseStateLoaded);
+                    connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &DumpBot::baseStateLoaded);
+                    connect(m_room, &QMatrixClient::Room::addedMessages, this, &DumpBot::addedMessages);
+                }
+            });
 }
 
 DumpBot::~DumpBot()
@@ -134,7 +133,7 @@ DumpBot::~DumpBot()
     }
 
     instance_count--;
-    if (instance_count<1)
+    if (instance_count < 1)
     {
         bailOut(3000);  // give some time for messages to be delivered
     }
@@ -150,9 +149,7 @@ void DumpBot::baseStateLoaded()
     {
         m_newlyConnected = false;
         qDebug() << "Room base state loaded"
-            << "id=" << m_room->id()
-            << "name=" << m_room->displayName()
-            << "topic=" << m_room->topic();
+                 << "id=" << m_room->id() << "name=" << m_room->displayName() << "topic=" << m_room->topic();
         if (m_showUsersOnly)
         {
             showUsers();
@@ -163,11 +160,13 @@ void DumpBot::baseStateLoaded()
 void log_messages(const MessageList& messages, int from, LoggerFile& logger)
 {
     bool first = true;
-    for (int it=from; it<messages.count(); ++it)
+    for (int it = from; it < messages.count(); ++it)
     {
         if (first)
         {
-            qDebug() << "Room messages" << from << '-' << (messages.count() - 1) << messages[it].originTimestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
+            qDebug() << "Room messages" << from << '-' << (messages.count() - 1)
+                     << messages[it].originTimestamp().toString() << "arrived"
+                     << QDateTime::currentDateTimeUtc().toString();
             first = false;
         }
         logger.log(messages[it]);
@@ -183,16 +182,17 @@ void DumpBot::finished()
 
     if (m_amount > 0)
     {
-        const int from = m_amount <= m_messages.count() ? m_messages.count() - m_amount  : 0;
+        const int from = m_amount <= m_messages.count() ? m_messages.count() - m_amount : 0;
         log_messages(m_messages, from, *m_logger);
     }
     else
     {
-        auto first = std::find_if(m_messages.begin(), m_messages.end(), [since=m_since](const MessageData& e){ return since < e.originTimestamp(); });
+        auto first = std::find_if(m_messages.begin(),
+                                  m_messages.end(),
+                                  [since = m_since](const MessageData& e) { return since < e.originTimestamp(); });
         if (first != m_messages.end())
         {
-            log_messages(m_messages,
-                         std::distance(m_messages.begin(), first), *m_logger);
+            log_messages(m_messages, std::distance(m_messages.begin(), first), *m_logger);
         }
         else
         {
@@ -212,8 +212,11 @@ MessageData::MessageData(const Quotient::RoomMessageEvent* p)
 
 static void organize_messages(MessageList& messages)
 {
-    std::sort(messages.begin(), messages.end(), []( const MessageData& a, const MessageData& b) { return a.originTimestamp() < b.originTimestamp(); } );
-    auto duplicates = std::unique(messages.begin(), messages.end(), []( const MessageData& a, const MessageData& b) { return a.id() == b.id(); });
+    std::sort(messages.begin(),
+              messages.end(),
+              [](const MessageData& a, const MessageData& b) { return a.originTimestamp() < b.originTimestamp(); });
+    auto duplicates = std::unique(
+        messages.begin(), messages.end(), [](const MessageData& a, const MessageData& b) { return a.id() == b.id(); });
     messages.erase(duplicates, messages.end());
 
     if (messages.isEmpty())
@@ -222,21 +225,34 @@ static void organize_messages(MessageList& messages)
     }
     else
     {
-        qDebug() << "There are now" << messages.count() << "messages from" << messages.first().originTimestamp() << "to" << messages.last().originTimestamp();
+        qDebug() << "There are now" << messages.count() << "messages from" << messages.first().originTimestamp() << "to"
+                 << messages.last().originTimestamp();
     }
 }
 
 static void add_messages(const Quotient::Room::Timeline& timeline, MessageList& messages)
 {
-    std::for_each(timeline.cbegin(), timeline.cend(),
-                    [&messages](const Quotient::TimelineItem& i){ const QMatrixClient::RoomMessageEvent* event = i.viewAs<QMatrixClient::RoomMessageEvent>(); if(event) { messages.append(MessageData(event)); } });
+    std::for_each(timeline.cbegin(),
+                  timeline.cend(),
+                  [&messages](const Quotient::TimelineItem& i)
+                  {
+                      const QMatrixClient::RoomMessageEvent* event = i.viewAs<QMatrixClient::RoomMessageEvent>();
+                      if (event)
+                      {
+                          messages.append(MessageData(event));
+                      }
+                  });
     organize_messages(messages);
 }
 
 static void add_messages(const Quotient::RoomEvents& timeline, MessageList& messages)
 {
-    std::for_each(timeline.cbegin(), timeline.cend(),
-                  [&messages](const std::unique_ptr<Quotient::RoomEvent>& e) { Quotient::visit(*e, [&messages](const Quotient::RoomMessageEvent& i) { messages.append(MessageData(&i)); }); } );
+    std::for_each(timeline.cbegin(),
+                  timeline.cend(),
+                  [&messages](const std::unique_ptr<Quotient::RoomEvent>& e) {
+                      Quotient::visit(
+                          *e, [&messages](const Quotient::RoomMessageEvent& i) { messages.append(MessageData(&i)); });
+                  });
     organize_messages(messages);
 }
 
@@ -255,8 +271,30 @@ void DumpBot::getMoreHistory()
         using GetRoomEventsJob = Quotient::GetRoomEventsJob;
         qWarning() << "No history job! Starting new one from" << m_previousChunkToken;
         p = new GetRoomEventsJob(m_room->id(), m_previousChunkToken, QStringLiteral("b"), QString(), 100);
-        connect(p, &GetRoomEventsJob::finished, [p](){ qDebug() << "Extra history job finished"; p->deleteLater(); });
-        connect(p, &GetRoomEventsJob::success, [this, p](){ add_messages( p->chunk(), m_messages); if (!isSatisfied()) { qDebug() << "Need more"; m_previousChunkToken = p->end(); QTimer::singleShot(0, this, &DumpBot::getMoreHistory); } else { qDebug() << "All done." ; QTimer::singleShot(0, this, &DumpBot::finished);} });
+        connect(p,
+                &GetRoomEventsJob::finished,
+                [p]()
+                {
+                    qDebug() << "Extra history job finished";
+                    p->deleteLater();
+                });
+        connect(p,
+                &GetRoomEventsJob::success,
+                [this, p]()
+                {
+                    add_messages(p->chunk(), m_messages);
+                    if (!isSatisfied())
+                    {
+                        qDebug() << "Need more";
+                        m_previousChunkToken = p->end();
+                        QTimer::singleShot(0, this, &DumpBot::getMoreHistory);
+                    }
+                    else
+                    {
+                        qDebug() << "All done.";
+                        QTimer::singleShot(0, this, &DumpBot::finished);
+                    }
+                });
         m_conn.run(p);
     }
 }
@@ -325,4 +363,4 @@ bool DumpBot::isSatisfied() const
     return false;
 }
 
-}  // namespace
+}  // namespace QuatBot

@@ -18,37 +18,39 @@
 
 namespace
 {
-    static constexpr const qint32 MAGIC = 0xcafe;
+static constexpr const qint32 MAGIC = 0xcafe;
 
-    void check_trailer(QDataStream& d)
+void check_trailer(QDataStream& d)
+{
+    QString user;
+    qint32 count;
+
+    // Check trailer?
+    d >> count;
+    if (count != 0)
     {
-        QString user;
-        qint32 count;
-
-        // Check trailer?
-        d >> count;
-        if (count != 0)
-        {
-            qWarning() << "Trailer 1 corrupt.";
-            return;
-        }
-        d >> count;
-        if (count != MAGIC)
-        {
-            qWarning() << "Trailer 2 corrupt.";
-            return;
-        }
-        d >> user;
-        if (user != "Koffiepot")
-        {
-            qWarning() << "Trailer 3 corrupt.";
-        }
+        qWarning() << "Trailer 1 corrupt.";
+        return;
+    }
+    d >> count;
+    if (count != MAGIC)
+    {
+        qWarning() << "Trailer 2 corrupt.";
+        return;
+    }
+    d >> user;
+    if (user != "Koffiepot")
+    {
+        qWarning() << "Trailer 3 corrupt.";
     }
 }
+}  // namespace
 namespace QuatBot
 {
-struct OptionalAnd {};
-QStringList& operator << (QStringList& l, const OptionalAnd& a)
+struct OptionalAnd
+{
+};
+QStringList& operator<<(QStringList& l, const OptionalAnd& a)
 {
     if (l.count() > 1)
     {
@@ -60,11 +62,9 @@ QStringList& operator << (QStringList& l, const OptionalAnd& a)
 class CoffeeStats
 {
 public:
-    CoffeeStats()
-    {
-    }
-    CoffeeStats(const QString& u) :
-        m_user(u)
+    CoffeeStats() {}
+    CoffeeStats(const QString& u)
+        : m_user(u)
     {
     }
 
@@ -80,16 +80,24 @@ class Coffee::Private
     /// @brief Remember to save state on return from a function
     struct AutoSave
     {
-        AutoSave(Private* p) : m_p(p) {}
+        AutoSave(Private* p)
+            : m_p(p)
+        {
+        }
         ~AutoSave() { m_p->save(); }
         Private* m_p;
-    } ;
+    };
 
 public:
-    Private(const QString& roomName) :
-        m_saveFileName([](QString s){ s.remove(QRegularExpression("[^a-zA-Z0-9_-]")); return QString("cookiejar-%1").arg(s); }(roomName))
+    Private(const QString& roomName)
+        : m_saveFileName(
+            [](QString s)
+            {
+                s.remove(QRegularExpression("[^a-zA-Z0-9_-]"));
+                return QString("cookiejar-%1").arg(s);
+            }(roomName))
     {
-        QObject::connect(&m_refill, &QTimer::timeout, [this](){ this->addCookie(); });
+        QObject::connect(&m_refill, &QTimer::timeout, [this]() { this->addCookie(); });
         m_refill.start(3579100);  // every hour, -ish
         load();
     }
@@ -104,22 +112,22 @@ public:
                 // We have data on a user, but they are no longer in the room
                 continue;
             }
-            QStringList info{u.m_user};
+            QStringList info { u.m_user };
             if (u.m_coffee > 0)
             {
-                info << OptionalAnd{} << QString("has had %1 cups of coffee").arg(u.m_coffee);
+                info << OptionalAnd {} << QString("has had %1 cups of coffee").arg(u.m_coffee);
             }
             if (u.m_tea > 0)
             {
-                info << OptionalAnd{} << QString("has had %1 cups of tea").arg(u.m_tea);
+                info << OptionalAnd {} << QString("has had %1 cups of tea").arg(u.m_tea);
             }
             if (u.m_cookie > 0)
             {
-                info << OptionalAnd{} << QString("has %1 cookies").arg(u.m_cookie);
+                info << OptionalAnd {} << QString("has %1 cookies").arg(u.m_cookie);
             }
             if (u.m_cookieEated > 0)
             {
-                info << OptionalAnd{} << QString("has eaten %1 cookies").arg(u.m_cookieEated);
+                info << OptionalAnd {} << QString("has eaten %1 cookies").arg(u.m_cookieEated);
             }
             info << ".";
             bot->message(info);
@@ -195,9 +203,10 @@ public:
         return false;
     }
 
-    const QPair<QString,QString> dataLocation() const
+    const QPair<QString, QString> dataLocation() const
     {
-        return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation), m_saveFileName);
+        return qMakePair(QStandardPaths::writableLocation(QStandardPaths::StandardLocation::AppDataLocation),
+                         m_saveFileName);
     }
 
     void save() const
@@ -267,17 +276,17 @@ public:
                 return;
             }
             d >> magic >> when;
-            qDebug() << "Loading save file v" << magic <<"from" << when.toString();
-            switch(magic)
+            qDebug() << "Loading save file v" << magic << "from" << when.toString();
+            switch (magic)
             {
-                case 1:
-                    loadV1(d);
-                    break;
-                case 2:
-                    loadV2(d);
-                    break;
-                default:
-                    qWarning() << "Save file has unknown version" << magic;
+            case 1:
+                loadV1(d);
+                break;
+            case 2:
+                loadV2(d);
+                break;
+            default:
+                qWarning() << "Save file has unknown version" << magic;
             }
         }
     }
@@ -303,11 +312,11 @@ private:
 
     void saveVCurrent(QDataStream d) const
     {
-        d << qint32(MAGIC);   // Coffee!
-        d << qint32(2);       // Version 2
+        d << qint32(MAGIC);  // Coffee!
+        d << qint32(2);  // Version 2
         d << QDateTime::currentDateTime();  // When?
 
-        d << qint32(m_stats.count());   // Number of elements
+        d << qint32(m_stats.count());  // Number of elements
         for (const auto& u : m_stats)
         {
             d << u.m_user << qint32(u.m_coffee) << qint32(u.m_tea) << qint32(u.m_cookie) << qint32(u.m_cookieEated);
@@ -331,7 +340,7 @@ private:
             return;
         }
 
-        while(count>0)
+        while (count > 0)
         {
             d >> user >> coffee >> cookie >> eated;
             auto& u = find(user);
@@ -360,7 +369,7 @@ private:
             return;
         }
 
-        while(count>0)
+        while (count > 0)
         {
             d >> user >> coffee >> tea >> cookie >> eated;
             auto& u = find(user);
@@ -382,9 +391,9 @@ private:
 };
 
 
-Coffee::Coffee(Bot* parent):
-    Watcher(parent),
-    d(new Private(parent->botRoom()))
+Coffee::Coffee(Bot* parent)
+    : Watcher(parent)
+    , d(new Private(parent->botRoom()))
 {
 }
 
@@ -401,17 +410,16 @@ const QString& Coffee::moduleName() const
 
 const QStringList& Coffee::moduleCommands() const
 {
-    static const QStringList commands{"coffee", "cookie", "lart",
+    static const QStringList commands {
+        "coffee", "cookie", "lart",
         "stats",  // long status
-        "status", // brief status
+        "status",  // brief status
         "tea",
     };
     return commands;
 }
 
-void Coffee::handleMessage(const Quotient::RoomMessageEvent*)
-{
-}
+void Coffee::handleMessage(const Quotient::RoomMessageEvent*) {}
 
 void Coffee::handleCookieCommand(const CommandArgs& cmd)
 {
@@ -495,11 +503,11 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     {
         if (d->coffee(cmd.user) <= 1)
         {
-            message(QStringList{cmd.user, "is now a coffee drinker."});
+            message(QStringList { cmd.user, "is now a coffee drinker." });
         }
         else
         {
-            message(QStringList{cmd.user, "has a nice cup of coffee."});
+            message(QStringList { cmd.user, "has a nice cup of coffee." });
         }
     }
     else if (cmd.command == QStringLiteral("lart"))
@@ -510,7 +518,7 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     {
         if (d->tea(cmd.user) <= 1)
         {
-            message(QStringList{cmd.user, "subscribes to Professor Elemental's newsletter."});
+            message(QStringList { cmd.user, "subscribes to Professor Elemental's newsletter." });
         }
         else
         {
@@ -519,7 +527,7 @@ void Coffee::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(Usage{});
+        message(Usage {});
     }
 }
 
@@ -541,4 +549,4 @@ bool Coffee::handleMissingVerb(const CommandArgs& cmd)
     return false;
 }
 
-}
+}  // namespace QuatBot

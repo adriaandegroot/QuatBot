@@ -11,7 +11,7 @@
 
 namespace QuatBot
 {
-static constexpr const QChar COMMAND_PREFIX('~'); // 0x1575); // ᕵ Nunavik Hi
+static constexpr const QChar COMMAND_PREFIX('~');  // 0x1575); // ᕵ Nunavik Hi
 
 static QString munge(const QString& s)
 {
@@ -22,10 +22,10 @@ CommandArgs::CommandArgs(QString s)
 {
     if (isCommand(s))
     {
-        QStringList parts = s.remove(0,1).split(' ');
+        QStringList parts = s.remove(0, 1).split(' ');
         QStringList r;
         // Skipping over the first, that's the command
-        for (int i=1; i<parts.count(); ++i)
+        for (int i = 1; i < parts.count(); ++i)
         {
             r << munge(parts[i]);
         }
@@ -35,8 +35,8 @@ CommandArgs::CommandArgs(QString s)
     }
 }
 
-CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e) :
-    CommandArgs(e->plainBody())
+CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e)
+    : CommandArgs(e->plainBody())
 {
     id = e->id();
     user = e->senderId();
@@ -69,22 +69,18 @@ bool CommandArgs::pop()
 }
 
 
-Watcher::Watcher(QuatBot::Bot* parent) :
-    m_bot(parent)
+Watcher::Watcher(QuatBot::Bot* parent)
+    : m_bot(parent)
 {
 }
 
-Watcher::~Watcher()
-{
-}
+Watcher::~Watcher() {}
 
 QString Watcher::displayCommand(const QString& s)
 {
     return QString("%1%2").arg(COMMAND_PREFIX).arg(s);
 }
 
-void Watcher::handleMessage(const QString&)
-{
-}
+void Watcher::handleMessage(const QString&) {}
 
-}  // namespace
+}  // namespace QuatBot

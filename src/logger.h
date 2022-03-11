@@ -34,5 +34,5 @@ private:
     LoggerFile* d;
 };
 
-}  // namespace
+}  // namespace QuatBot
 #endif

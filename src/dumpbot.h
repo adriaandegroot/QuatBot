@@ -16,10 +16,10 @@
 
 namespace Quotient
 {
-    class Connection;
-    class Room;
-    class RoomMessageEvent;
-}
+class Connection;
+class Room;
+class RoomMessageEvent;
+}  // namespace Quotient
 
 namespace QuatBot
 {
@@ -30,7 +30,8 @@ class LoggerFile;
  * This contains only the minimum data needed to recreate or display
  * a message in text form.
  */
-class MessageData {
+class MessageData
+{
 public:
     MessageData() {}
     MessageData(const Quotient::RoomMessageEvent* p);
@@ -39,6 +40,7 @@ public:
     QString id() const { return m_id; }
     QString senderId() const { return m_sender; }
     QString plainBody() const { return m_plainBody; }
+
 private:
     QDateTime m_dt;
     QString m_id;
@@ -62,7 +64,7 @@ public:
      * added immediately to the set of operators. The user
      * set in @p conn is also always an operator.
      */
-    explicit DumpBot(Quotient::Connection& conn, const QString& roomName, const QStringList& ops=QStringList());
+    explicit DumpBot(Quotient::Connection& conn, const QString& roomName, const QStringList& ops = QStringList());
     virtual ~DumpBot() override;
 
     /// @brief All the user ids from the room
@@ -116,7 +118,7 @@ protected:
 private:
     Quotient::Room* m_room = nullptr;
     Quotient::Connection& m_conn;
-    LoggerFile *m_logger = nullptr;
+    LoggerFile* m_logger = nullptr;
 
     QString m_roomName;
     bool m_newlyConnected = true;
@@ -127,6 +129,6 @@ private:
     MessageList m_messages;
     QString m_previousChunkToken;
 };
-}  // namespace
+}  // namespace QuatBot
 
 #endif

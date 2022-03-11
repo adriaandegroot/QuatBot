@@ -32,18 +32,9 @@ public:
 
     void open(const QString& name);
     void close();
-    bool isOpen() const
-    {
-        return m_stream != nullptr;
-    }
-    QString fileName() const
-    {
-        return m_file ? m_file->fileName() : QString();
-    }
-    int lineCount() const
-    {
-        return m_lines;
-    }
+    bool isOpen() const { return m_stream != nullptr; }
+    QString fileName() const { return m_file ? m_file->fileName() : QString(); }
+    int lineCount() const { return m_lines; }
     void flush();
 
 private:
@@ -54,5 +45,5 @@ private:
     QString makeName(QString);  // Copied because it is modified in the method
 };
 
-}  // namespace
+}  // namespace QuatBot
 #endif

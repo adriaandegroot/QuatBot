@@ -18,8 +18,8 @@
 
 namespace QuatBot
 {
-LoggerFile::LoggerFile() :
-    m_lines(0)
+LoggerFile::LoggerFile()
+    : m_lines(0)
 {
 }
 
@@ -88,11 +88,18 @@ void LoggerFile::flush()
     }
 }
 
-template<class stream> void eol(stream& s) { s << '\n'; }
-template<> void eol<QDebug>(QDebug&) { }
+template <class stream>
+void eol(stream& s)
+{
+    s << '\n';
+}
+template <>
+void eol<QDebug>(QDebug&)
+{
+}
 
 // make copies because we'll be modifying them
-template<class stream>
+template <class stream>
 void logX(stream& s, QString timestamp, QString sender, QString message)
 {
     timestamp.truncate(19);
@@ -101,8 +108,7 @@ void logX(stream& s, QString timestamp, QString sender, QString message)
     sender.truncate(12);
 
     // Just the HH:mm:ss
-    s << timestamp.right(8).leftJustified(8)
-        << ' ' << sender.leftJustified(12) << '\t';
+    s << timestamp.right(8).leftJustified(8) << ' ' << sender.leftJustified(12) << '\t';
     if (message.contains('\n'))
     {
         QStringList parts = message.split('\n');
@@ -142,7 +148,10 @@ void LoggerFile::log(const QMatrixClient::RoomMessageEvent* message)
     if (m_stream)
     {
         ++m_lines;
-        logX(*m_stream, message->originTimestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
+        logX(*m_stream,
+             message->originTimestamp().toString(Qt::DateFormat::ISODate),
+             message->senderId(),
+             message->plainBody());
     }
 
     auto d = qDebug().noquote().nospace();
@@ -154,7 +163,10 @@ void LoggerFile::log(const QuatBot::MessageData& message)
     if (m_stream)
     {
         ++m_lines;
-        logX(*m_stream, message.originTimestamp().toString(Qt::DateFormat::ISODate), message.senderId(), message.plainBody());
+        logX(*m_stream,
+             message.originTimestamp().toString(Qt::DateFormat::ISODate),
+             message.senderId(),
+             message.plainBody());
     }
 
     auto d = qDebug().noquote().nospace();
@@ -171,4 +183,4 @@ QString LoggerFile::makeName(QString s)
     return QString("/tmp/quatbot-%1.log").arg(s.remove(QRegularExpression("[^a-zA-Z0-9_]")));
 }
 
-}
+}  // namespace QuatBot

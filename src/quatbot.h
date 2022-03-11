@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #ifndef QUATBOT_QUATBOT_H
 #define QUATBOT_QUATBOT_H
@@ -15,9 +15,9 @@
 
 namespace Quotient
 {
-    class Connection;
-    class Room;
-}
+class Connection;
+class Room;
+}  // namespace Quotient
 
 namespace QuatBot
 {
@@ -45,7 +45,7 @@ class Watcher;
  */
 class Bot : public QObject
 {
-friend class BasicCommands;  // Allows to call setOps
+    friend class BasicCommands;  // Allows to call setOps
 
 public:
     /** @brief Create a bot for the named @p roomName
@@ -54,12 +54,14 @@ public:
      * added immediately to the set of operators. The user
      * set in @p conn is also always an operator.
      */
-    explicit Bot(Quotient::Connection& conn, const QString& roomName, const QStringList& ops=QStringList());
+    explicit Bot(Quotient::Connection& conn, const QString& roomName, const QStringList& ops = QStringList());
     virtual ~Bot() override;
-    
+
     /// @brief Tag-class used in checkOps() overrides.
-    struct Silent {};
-    
+    struct Silent
+    {
+    };
+
     /// @brief is the @p user an operator of the bot? No message.
     bool checkOps(const QString& user, Silent s);
     /// @brief is the @p cmd issued by an operator? No message.
@@ -97,7 +99,7 @@ public:
      * Calling code is expected to call userLookup() individually to check.
      */
     QStringList userLookup(const QStringList& users);
-    
+
     /// @brief All the user ids from the room
     QStringList userIds();
     /// @brief User id of the bot user itself
@@ -116,11 +118,13 @@ public:
      * separate response, call flush explicitly.
      */
     void message(const QString& s);
-    
-    struct Flush{}; ///< Tag class
+
+    struct Flush
+    {
+    };  ///< Tag class
     /// @brief Flushes the message queue.
     void message(Flush);
-    
+
     /** @brief Get the watcher with the given @p name
      * 
      * In some cases one Watcher needs to use a service from another,
@@ -129,7 +133,7 @@ public:
      */
     Watcher* getWatcher(const QString& name);
     QStringList watcherNames() const;
-    
+
 protected:
     /// @brief Called once the room is loaded for the first time.
     void baseStateLoaded();
@@ -143,22 +147,22 @@ protected:
      * non-existent name, or de-opping the last operator.
      */
     bool setOps(const QString& user, bool op);
-    
+
     /// @brief Instantiate the watchers for this bot
     void setupWatchers();
-    
+
 private:
     Quotient::Room* m_room = nullptr;
     Quotient::Connection& m_conn;
-    
+
     QVector<Watcher*> m_watchers;
     QSet<QString> m_operators;
     QSet<QString> m_ambiguousCommands;
-    
+
     QStringList m_accumulatedMessages;
     QString m_roomName;
     bool m_newlyConnected = true;
 };
-}  // namespace
+}  // namespace QuatBot
 
 #endif

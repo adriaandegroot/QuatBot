@@ -60,7 +60,7 @@ struct DisplayName
 {
     QString id;
     QStringList displayName;
-} ;
+};
 
 /** @brief Sort displaynames, longest first, then alphabetical.
  */
@@ -76,7 +76,7 @@ bool operator<(const DisplayName& a, const DisplayName& b)
     }
 
     // Equal length
-    for (int i=0; i < a.displayName.count(); ++i)
+    for (int i = 0; i < a.displayName.count(); ++i)
     {
         if (a.displayName[i] < b.displayName[i])
         {
@@ -101,7 +101,7 @@ QStringList Bot::userLookup(const QStringList& users)
     idToDisplayName.reserve(m_room->users().count());
     for (const auto& u : m_room->users())
     {
-        idToDisplayName.append({u->id(), splitUserName(u->displayname(m_room))});
+        idToDisplayName.append({ u->id(), splitUserName(u->displayname(m_room)) });
     }
     std::sort(idToDisplayName.begin(), idToDisplayName.end());
 
@@ -121,12 +121,12 @@ QStringList Bot::userLookup(const QStringList& users)
         else
         {
             bool found = false;
-            for (const auto& [matrixId, userParts] : idToDisplayName )
+            for (const auto& [matrixId, userParts] : idToDisplayName)
             {
                 found = userParts.count() > 0;  // initialize to false if the for-loop would be skipped
-                for (int j = 0; (j < userParts.count()) && ((i+j) < users.count()); ++j)
+                for (int j = 0; (j < userParts.count()) && ((i + j) < users.count()); ++j)
                 {
-                    if (userParts[j] != users[i+j])
+                    if (userParts[j] != users[i + j])
                     {
                         found = false;
                         break;
@@ -191,19 +191,18 @@ QString Bot::botUser() const
 }
 
 
-
 static int instance_count = 0;
 
-static void bailOut(int timeout=0)
+static void bailOut(int timeout = 0)
 {
     QTimer::singleShot(timeout, qApp, &QCoreApplication::quit);
 }
 
 
-Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops) :
-        QObject(),
-        m_conn(conn),
-        m_roomName(roomName)
+Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QStringList& ops)
+    : QObject()
+    , m_conn(conn)
+    , m_roomName(roomName)
 {
     instance_count++;
     if (conn.homeserver().isEmpty() || !conn.homeserver().isValid())
@@ -221,37 +220,37 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
         return;
     }
 
-    connect(joinRoom, &QMatrixClient::BaseJob::failure,
-        [this]()
-        {
-            qWarning() << "Joining room" << this->m_roomName << "failed.";
-            bailOut();
-        }
-    );
-    connect(joinRoom, &QMatrixClient::BaseJob::success,
-        [this, joinRoom]()
-        {
-            setupWatchers();
-
-            qDebug() << "Joined room" << this->m_roomName << "successfully.";
-            m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
-            if (!m_room)
+    connect(joinRoom,
+            &QMatrixClient::BaseJob::failure,
+            [this]()
             {
-                qDebug() << ".. pending invite, giving up already.";
+                qWarning() << "Joining room" << this->m_roomName << "failed.";
                 bailOut();
-            }
-            else
+            });
+    connect(joinRoom,
+            &QMatrixClient::BaseJob::success,
+            [this, joinRoom]()
             {
-                m_room->checkVersion();
-                qDebug() << "Room version" << m_room->version();
-                m_room->setDisplayed(true);  // Force non-lazy load
-                // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
-                QTimer::singleShot(10000, this, &Bot::baseStateLoaded);
-                connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
-                connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
-            }
-        }
-    );
+                setupWatchers();
+
+                qDebug() << "Joined room" << this->m_roomName << "successfully.";
+                m_room = m_conn.room(joinRoom->roomId(), QMatrixClient::JoinState::Join);
+                if (!m_room)
+                {
+                    qDebug() << ".. pending invite, giving up already.";
+                    bailOut();
+                }
+                else
+                {
+                    m_room->checkVersion();
+                    qDebug() << "Room version" << m_room->version();
+                    m_room->setDisplayed(true);  // Force non-lazy load
+                    // Some rooms never generate a baseStateLoaded signal, so just wait 10sec
+                    QTimer::singleShot(10000, this, &Bot::baseStateLoaded);
+                    connect(m_room, &QMatrixClient::Room::baseStateLoaded, this, &Bot::baseStateLoaded);
+                    connect(m_room, &QMatrixClient::Room::addedMessages, this, &Bot::addedMessages);
+                }
+            });
 
     setOps(conn.userId(), true);
     for (const auto& u : ops)
@@ -262,14 +261,14 @@ Bot::Bot(QMatrixClient::Connection& conn, const QString& roomName, const QString
 
 Bot::~Bot()
 {
-    if(m_room)
+    if (m_room)
     {
         m_room->leaveRoom();
     }
     qDeleteAll(m_watchers);
 
     instance_count--;
-    if (instance_count<1)
+    if (instance_count < 1)
     {
         bailOut(3000);  // give some time for messages to be delivered
     }
@@ -281,9 +280,7 @@ void Bot::baseStateLoaded()
     {
         m_newlyConnected = false;
         qDebug() << "Room base state loaded"
-            << "id=" << m_room->id()
-            << "name=" << m_room->displayName()
-            << "topic=" << m_room->topic();
+                 << "id=" << m_room->id() << "name=" << m_room->displayName() << "topic=" << m_room->topic();
     }
 }
 
@@ -291,8 +288,11 @@ void Bot::baseStateLoaded()
 class Flusher
 {
 public:
-    Flusher(Bot* b): m_b(b) {}
-    ~Flusher() { m_b->message(Bot::Flush{}); }
+    Flusher(Bot* b)
+        : m_b(b)
+    {
+    }
+    ~Flusher() { m_b->message(Bot::Flush {}); }
 
 private:
     Bot* m_b;
@@ -309,17 +309,18 @@ void Bot::addedMessages(int from, int to)
 
     bool first = true;
     const auto& timeline = m_room->messageEvents();
-    for (int it=from; it<=to; ++it)
+    for (int it = from; it <= to; ++it)
     {
         const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
         if (event)
         {
             if (first)
             {
-                qDebug() << "Room messages" << from << '-' << to << event->originTimestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
+                qDebug() << "Room messages" << from << '-' << to << event->originTimestamp().toString() << "arrived"
+                         << QDateTime::currentDateTimeUtc().toString();
                 first = false;
             }
-            for(const auto& w : m_watchers)
+            for (const auto& w : m_watchers)
             {
                 w->handleMessage(event);
             }
@@ -329,7 +330,7 @@ void Bot::addedMessages(int from, int to)
             {
                 Flusher f(this);
                 bool handled = false;
-                for(const auto& w : m_watchers)
+                for (const auto& w : m_watchers)
                 {
                     if (w->moduleName() == cmd.command)
                     {
@@ -351,12 +352,12 @@ void Bot::addedMessages(int from, int to)
                 }
                 else
                 {
-                    for(const auto& w : m_watchers)
+                    for (const auto& w : m_watchers)
                     {
                         if (w->moduleCommands().contains(cmd.command))
                         {
                             w->handleCommand(cmd);
-                            handled=true;
+                            handled = true;
                             break;
                         }
                     }
@@ -396,7 +397,8 @@ bool Bot::setOps(const QString& user, bool op)
         }
         return false;  // Wasn't removed
     }
-    else return false;  // Can't remove last op
+    else
+        return false;  // Can't remove last op
 }
 
 bool Bot::checkOps(const QString& user, Silent s)
@@ -411,7 +413,7 @@ bool Bot::checkOps(const QuatBot::CommandArgs& cmd, Silent s)
 
 bool Bot::checkOps(const QuatBot::CommandArgs& cmd)
 {
-    if (checkOps(cmd, Silent{}))
+    if (checkOps(cmd, Silent {}))
         return true;
     message("Only operators can do that.");
     return false;
@@ -501,4 +503,4 @@ void Bot::setupWatchers()
     m_ambiguousCommands.subtract(commandSet(m_watchers[0]->moduleCommands()));
 }
 
-}  // namespace
+}  // namespace QuatBot

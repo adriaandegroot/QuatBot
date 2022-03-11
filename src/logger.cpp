@@ -18,15 +18,15 @@
 
 namespace QuatBot
 {
-Logger::Logger(Bot* parent) :
-    Watcher(parent),
-    d(new LoggerFile)
+Logger::Logger(Bot* parent)
+    : Watcher(parent)
+    , d(new LoggerFile)
 {
 }
 
 Logger::~Logger()
 {
-	delete d;
+    delete d;
 }
 
 const QString& Logger::moduleName() const
@@ -37,7 +37,7 @@ const QString& Logger::moduleName() const
 
 const QStringList& Logger::moduleCommands() const
 {
-    static const QStringList commands{"on","off","status"};
+    static const QStringList commands { "on", "off", "status" };
     return commands;
 }
 
@@ -112,8 +112,8 @@ void Logger::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(Usage{});
+        message(Usage {});
     }
 }
 
-}
+}  // namespace QuatBot

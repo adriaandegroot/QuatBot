@@ -38,12 +38,11 @@ int main(int argc, char** argv)
     app.setApplicationName("QuatBot");
     app.setApplicationVersion("0.8");
 
-    QCommandLineOption userOption( QStringList{"u", "user"},
-        "User to use to connect.", "user");
-    QCommandLineOption passOption( QStringList{"p", "password"},
-        "Password to use to connect (will prompt if unset).", "password");
-    QCommandLineOption operatorOption( QStringList{"o", "operator"},
-        "Additional user-id to consider as operator.", "userid");
+    QCommandLineOption userOption(QStringList { "u", "user" }, "User to use to connect.", "user");
+    QCommandLineOption passOption(
+        QStringList { "p", "password" }, "Password to use to connect (will prompt if unset).", "password");
+    QCommandLineOption operatorOption(
+        QStringList { "o", "operator" }, "Additional user-id to consider as operator.", "userid");
     QCommandLineParser parser;
     parser.setApplicationDescription("Chatbot for meeting-management on Matrix");
     parser.addHelpOption();
@@ -57,44 +56,34 @@ int main(int argc, char** argv)
     if (parser.positionalArguments().count() < 1)
     {
         qWarning() << "Usage: quatbot <options> <room..>\n"
-            "  Give at least one room name.\n";
+                      "  Give at least one room name.\n";
         return 1;
     }
 
     QObject::connect(QMatrixClient::NetworkAccessManager::instance(),
-            &QNetworkAccessManager::sslErrors,
-            [](QNetworkReply* reply, const QList<QSslError>& errors)
-            {
-                reply->ignoreSslErrors(errors);
-            }
-    );
+                     &QNetworkAccessManager::sslErrors,
+                     [](QNetworkReply* reply, const QList<QSslError>& errors) { reply->ignoreSslErrors(errors); });
 
     QMatrixClient::Connection conn;
     conn.connectToServer(parser.value(userOption),
-        parser.isSet(passOption) ? parser.value(passOption) : QString(getpass("Matrix password: ")),
-        "quatbot");  // user pass device
+                         parser.isSet(passOption) ? parser.value(passOption) : QString(getpass("Matrix password: ")),
+                         "quatbot");  // user pass device
 
     QObject::connect(&conn,
-        &QMatrixClient::Connection::connected,
-        [&]()
-        {
-            qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
-            conn.setLazyLoading(false);
-            conn.syncLoop();
-            for (const auto& r: parser.positionalArguments())
-            {
-                // Unused, gets cleaned up by itself
-                QuatBot::Bot* bot = new QuatBot::Bot(conn, r, parser.values(operatorOption));
-            }
-        }
-    );
-    QObject::connect(&conn,
-        &QMatrixClient::Connection::loginError,
-        []()
-        {
-            QTimer::singleShot(0, qApp, &QCoreApplication::quit);
-        }
-    );
+                     &QMatrixClient::Connection::connected,
+                     [&]()
+                     {
+                         qDebug() << "Connected to" << conn.homeserver() << "as" << conn.userId();
+                         conn.setLazyLoading(false);
+                         conn.syncLoop();
+                         for (const auto& r : parser.positionalArguments())
+                         {
+                             // Unused, gets cleaned up by itself
+                             QuatBot::Bot* bot = new QuatBot::Bot(conn, r, parser.values(operatorOption));
+                         }
+                     });
+    QObject::connect(
+        &conn, &QMatrixClient::Connection::loginError, []() { QTimer::singleShot(0, qApp, &QCoreApplication::quit); });
 
     return app.exec();
 }

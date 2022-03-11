@@ -3,7 +3,7 @@
  *  SPDX-License-File: LICENSE
  *
  * Copyright 2019 Adriaan de Groot <groot@kde.org>
- */   
+ */
 
 #ifndef QUATBOT_WATCHER_H
 #define QUATBOT_WATCHER_H
@@ -15,9 +15,9 @@
 
 namespace Quotient
 {
-    class Room;
-    class RoomMessageEvent;
-}
+class Room;
+class RoomMessageEvent;
+}  // namespace Quotient
 
 namespace QuatBot
 {
@@ -39,7 +39,7 @@ struct CommandArgs
      * If the string does not start with COMMAND_PREFIX, creates
      * an invalid command.
      */
-    explicit CommandArgs(QString);   // Copied because it's modified in the method
+    explicit CommandArgs(QString);  // Copied because it's modified in the method
     /** @brief Build a command list from an event.
      * 
      * This kind of command carries the id and user information from
@@ -47,12 +47,12 @@ struct CommandArgs
      * COMMAND_PREFIX, an invalid command is created.
      */
     explicit CommandArgs(const Quotient::RoomMessageEvent*);
-    
+
     /// @brief Checks @p s for COMMAND_PREFIX
     static bool isCommand(const QString& s);
     /// @brief Checks @p e for COMMAND_PREFIX at the start of the message text
     static bool isCommand(const Quotient::RoomMessageEvent* e);
-    
+
     /// @brief Is this a valid command list?
     bool isValid() const { return !command.isEmpty(); }
 
@@ -68,13 +68,13 @@ struct CommandArgs
      * is no subcommand (e.g. args is empty.
      */
     bool pop();
-    
+
     QString id;  ///< event Id, if available.
     QString user;  ///< user Id, if available. Used for access-control (ops)
     QString command;
     QStringList args;
 };
-    
+
 /** @brief Base class for handlers of a certain class of commands
  * 
  * A *Watcher* watches incoming messages and processes each text
@@ -98,14 +98,14 @@ class Watcher
 public:
     explicit Watcher(Bot* parent);
     virtual ~Watcher();
-    
+
     /** @brief identifier of this module.
      * 
      * This is used to identify which commands go where; except for
      * the one special subclass BasicCommands, this must not be empty.
      */
     virtual const QString& moduleName() const = 0;
-    
+
     /** @brief the (sub) commands that this module understands
      *
      * Returns a list of commands that this module uses.
@@ -113,7 +113,7 @@ public:
      * Do not include "help".
      */
     virtual const QStringList& moduleCommands() const = 0;
-    
+
     /** @brief Handle "virtual" message sent by the bot
      * 
      * The default implementation does nothing.
@@ -143,12 +143,14 @@ protected:
     void message(const QStringList& l) const { m_bot->message(l); }
 
     /// @brief Tag class
-    struct Usage {};
+    struct Usage
+    {
+    };
     /// @brief Print a usage message
     void message(Usage) { message(QString("Usage: %1 <%2>").arg(displayCommand(), this->moduleCommands().join('|'))); }
-    
+
     Bot* m_bot;
 };
-    
-}
+
+}  // namespace QuatBot
 #endif

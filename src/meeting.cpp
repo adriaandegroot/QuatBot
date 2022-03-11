@@ -23,8 +23,8 @@ struct Breakout
 
     QString toString() const
     {
-        QStringList parts{"Breakout:"};
-        parts << ( description.isEmpty() ? id : description );
+        QStringList parts { "Breakout:" };
+        parts << (description.isEmpty() ? id : description);
         parts << "; Chair:" << chair;
         if (participants.count() > 0)
         {
@@ -37,11 +37,11 @@ struct Breakout
 
 struct Meeting::Private
 {
-    explicit Private(Bot* bot) :
-        m_bot(bot),
-        m_state(State::None)
+    explicit Private(Bot* bot)
+        : m_bot(bot)
+        , m_state(State::None)
     {
-        QObject::connect(&m_waiting, &QTimer::timeout, [this](){ this->timeout(); });
+        QObject::connect(&m_waiting, &QTimer::timeout, [this]() { this->timeout(); });
         m_waiting.setSingleShot(true);
     }
 
@@ -117,8 +117,8 @@ struct Meeting::Private
             m_bot->message("That was the last one! We're done.");
             if (m_breakouts.count() > 0)
             {
-                m_bot->message(Bot::Flush{});
-                for(const auto& b : m_breakouts)
+                m_bot->message(Bot::Flush {});
+                for (const auto& b : m_breakouts)
                 {
                     m_bot->message(b.toString());
                 }
@@ -139,7 +139,7 @@ struct Meeting::Private
             m_bot->message(QString("%1, you're up (after that, we're done!).").arg(m_current));
         }
         m_reminderCount = 2;
-        m_waiting.start(30000); // half a minute to reminder
+        m_waiting.start(30000);  // half a minute to reminder
     }
 
     void breakout(const QString& user, QStringList b)  // Copy since we're going to modify it
@@ -163,9 +163,9 @@ struct Meeting::Private
         }
 
         // None matched, make new
-        m_breakouts.append({breakoutId, description, user, QStringList{}});
+        m_breakouts.append({ breakoutId, description, user, QStringList {} });
 
-        QStringList l{QString("Breakout '%1' is registered.").arg(breakoutId)};
+        QStringList l { QString("Breakout '%1' is registered.").arg(breakoutId) };
         if (!description.isEmpty())
         {
             l << description;
@@ -187,15 +187,13 @@ struct Meeting::Private
     bool m_currentSeen = false;
 };
 
-Meeting::Meeting(Bot* bot) :
-    Watcher(bot),
-    d(new Private(bot))
+Meeting::Meeting(Bot* bot)
+    : Watcher(bot)
+    , d(new Private(bot))
 {
 }
 
-Meeting::~Meeting()
-{
-}
+Meeting::~Meeting() {}
 
 const QString& Meeting::moduleName() const
 {
@@ -205,7 +203,7 @@ const QString& Meeting::moduleName() const
 
 const QStringList& Meeting::moduleCommands() const
 {
-    static const QStringList commands{"status","rollcall","next","breakout","skip","bump","queue","done"};
+    static const QStringList commands { "status", "rollcall", "next", "breakout", "skip", "bump", "queue", "done" };
     return commands;
 }
 
@@ -216,7 +214,7 @@ void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
     {
         d->addParticipant(e->senderId());
     }
-    if ((d->m_state == State::InProgress ) && (e->senderId() == d->m_current))
+    if ((d->m_state == State::InProgress) && (e->senderId() == d->m_current))
     {
         d->m_waiting.stop();
     }
@@ -240,7 +238,9 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 ids.removeAll(u);
             for (const auto& u : d->m_participants)
                 ids.removeAll(u);
-            message(QStringList{"Hello @room, this is the roll-call!", QString("%1 is chair.").arg(d->m_chair), "Calling"} << ids);
+            message(QStringList {
+                        "Hello @room, this is the roll-call!", QString("%1 is chair.").arg(d->m_chair), "Calling" }
+                    << ids);
         }
         else
         {
@@ -266,7 +266,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 enableLogging(cmd, false);
             }
         }
-        else if ( d->m_state == State::InProgress && cmd.user == d->m_current)
+        else if (d->m_state == State::InProgress && cmd.user == d->m_current)
         {
             d->next();
         }
@@ -301,7 +301,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             for (const auto& user : m_bot->userLookup(cmd.args))
             {
                 bool ok = true;
-                int new_index = qBound(1, user.toInt(&ok), d->m_participants.count()-1);
+                int new_index = qBound(1, user.toInt(&ok), d->m_participants.count() - 1);
                 if (ok)
                 {
                     // It was a number, so save it for next time around
@@ -313,10 +313,12 @@ void Meeting::handleCommand(const CommandArgs& cmd)
                 QString userName = m_bot->userLookup(user);
                 if (!userName.isEmpty())
                 {
-                    d->bump(index-1, userName);
+                    d->bump(index - 1, userName);
                     if (index > 1)
                     {
-                        message(QString("User %1 will be up in %2.").arg(userName).arg(d->m_participants.indexOf(userName)+1));
+                        message(QString("User %1 will be up in %2.")
+                                    .arg(userName)
+                                    .arg(d->m_participants.indexOf(userName) + 1));
                     }
                     else
                     {
@@ -355,9 +357,11 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             {
                 participantsMessage << QString("It is %1 's turn.").arg(d->m_current);
             }
-            if ( d->m_participants.count() > 0 )
+            if (d->m_participants.count() > 0)
             {
-                participantsMessage << ((amount >= d->m_participants.count()) ? QString("All upcoming participants:") : QString("Next %1 participants:").arg(amount));
+                participantsMessage << ((amount >= d->m_participants.count())
+                                            ? QString("All upcoming participants:")
+                                            : QString("Next %1 participants:").arg(amount));
                 for (const auto& u : d->m_participants)
                 {
                     if (--amount >= 0)
@@ -388,7 +392,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
             d->breakout(cmd.user, cmd.args);
         }
     }
-    else if  (cmd.command == QStringLiteral("done"))
+    else if (cmd.command == QStringLiteral("done"))
     {
         if (m_bot->checkOps(cmd))
         {
@@ -400,7 +404,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
     }
     else
     {
-        message(Usage{});
+        message(Usage {});
     }
 }
 
@@ -408,12 +412,12 @@ static QString _shortStatus(Meeting::State s)
 {
     switch (s)
     {
-        case Meeting::State::None:
-            return QString("No meeting in progress.");
-        case Meeting::State::RollCall:
-            return QString("Doing the rollcall.");
-        case Meeting::State::InProgress:
-            return QString("Meeting in progress.");
+    case Meeting::State::None:
+        return QString("No meeting in progress.");
+    case Meeting::State::RollCall:
+        return QString("Doing the rollcall.");
+    case Meeting::State::InProgress:
+        return QString("Meeting in progress.");
     }
     return QString("The meeting is in disarray.");
 }
@@ -425,13 +429,13 @@ void Meeting::shortStatus() const
 
 void Meeting::status() const
 {
-    QStringList l{"(meeting)"};
+    QStringList l { "(meeting)" };
     l << _shortStatus(d->m_state);
     if (d->m_state != State::None)
     {
         l << QString("It is %1 (time UTC).").arg(QDateTime::currentDateTimeUtc().toString());
         l << QString("Chaired by %1.").arg(d->m_chair)
-            << QString("There are %1 participants left.").arg(d->m_participants.count());
+          << QString("There are %1 participants left.").arg(d->m_participants.count());
         // Here > 1 because the bot itself is always "done"
         if (d->m_participantsDone.count() > 1)
         {
@@ -447,7 +451,7 @@ void Meeting::status() const
 
 void Meeting::enableLogging(const CommandArgs& cmd, bool b)
 {
-    if (m_bot->checkOps(cmd, Bot::Silent{}))
+    if (m_bot->checkOps(cmd, Bot::Silent {}))
     {
         Watcher* w = m_bot->getWatcher("log");
         if (w)
@@ -461,7 +465,7 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
             int week = QDate::currentDate().weekNumber(&year);
             logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
             logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
-            logCommand.args = QStringList{"?quiet"};
+            logCommand.args = QStringList { "?quiet" };
             w->handleCommand(logCommand);
         }
     }
@@ -475,7 +479,7 @@ void Meeting::Private::timeout()
 
     if (m_state == State::RollCall)
     {
-        QStringList noResponse{"Roll-call reminder for"};
+        QStringList noResponse { "Roll-call reminder for" };
 
         for (const auto& u : m_bot->userIds())
         {
@@ -492,10 +496,10 @@ void Meeting::Private::timeout()
     }
     else if (m_state == State::InProgress)
     {
-        m_bot->message(QStringList{m_current, "are you with us?"});
+        m_bot->message(QStringList { m_current, "are you with us?" });
     }
-    m_bot->message(Bot::Flush{});
+    m_bot->message(Bot::Flush {});
     m_waiting.start();
 }
 
-}  // namespace
+}  // namespace QuatBot
