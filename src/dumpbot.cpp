@@ -143,6 +143,7 @@ DumpBot::~DumpBot()
     m_logger = nullptr;
 }
 
+
 void DumpBot::baseStateLoaded()
 {
     if (m_newlyConnected)
@@ -177,15 +178,67 @@ void log_messages(const Quotient::Room::Timeline& timeline, int from, int to, Lo
     }
 }
 
+static void organize_messages(QList<const Quotient::RoomMessageEvent*>& messages)
+{
+    std::sort(messages.begin(), messages.end(), []( const Quotient::RoomMessageEvent* a, const Quotient::RoomMessageEvent* b) { return a->originTimestamp() < b->originTimestamp(); } );
+    auto duplicates = std::unique(messages.begin(), messages.end(), []( const Quotient::RoomMessageEvent* a, const Quotient::RoomMessageEvent* b) { return a->id() == b->id(); });
+    messages.erase(duplicates, messages.end());
+
+    if (messages.isEmpty())
+    {
+        qDebug() << "No messages!";
+    }
+    else
+    {
+        qDebug() << "There are now" << messages.count() << "messages from" << messages.first()->originTimestamp() << "to" << messages.last()->originTimestamp();
+    }
+}
+
+static void add_messages(const Quotient::Room::Timeline& timeline, QList<const Quotient::RoomMessageEvent*>& messages)
+{
+    std::for_each(timeline.cbegin(), timeline.cend(),
+                    [&messages](const Quotient::TimelineItem& i){ const QMatrixClient::RoomMessageEvent* event = i.viewAs<QMatrixClient::RoomMessageEvent>(); if(event) { messages.append(event); } });
+    organize_messages(messages);
+}
+
+static void add_messages(const Quotient::RoomEvents& timeline, QList<const Quotient::RoomMessageEvent*>& messages)
+{
+    std::for_each(timeline.cbegin(), timeline.cend(),
+                  [&messages](const std::unique_ptr<Quotient::RoomEvent>& e) { Quotient::visit(*e, [&messages](const Quotient::RoomMessageEvent& i) { messages.append(&i); }); } );
+    organize_messages(messages);
+}
+
+
+void DumpBot::getMoreHistory()
+{
+    auto* p = m_room->eventsHistoryJob();
+    if (p)
+    {
+        qDebug() << "History" << p->begin() << p->end();
+        m_conn.run(p);
+    }
+    else
+    {
+        // const QString startId = m_messages.isEmpty() ? m_room->firstDisplayedEventId() : m_messages[0]->id();
+        using GetRoomEventsJob = Quotient::GetRoomEventsJob;
+        qWarning() << "No history job!";
+        p = new GetRoomEventsJob(m_room->id(), m_previousChunkToken, QStringLiteral("b"), QString(), 100);
+        connect(p, &GetRoomEventsJob::finished, [p](){ qDebug() << "Extra history job finished"; p->deleteLater(); });
+        connect(p, &GetRoomEventsJob::success, [this, p](){ add_messages( p->chunk(), m_messages); });
+        m_conn.run(p);
+    }
+}
+
 void DumpBot::addedMessages(int from, int to)
 {
     const auto& timeline = m_room->messageEvents();
     if (!m_showUsersOnly)
     {
-        log_messages(timeline, from, to, *m_logger);
+        add_messages(timeline, m_messages);
     }
     m_room->markMessagesAsRead(timeline[to]->id());
     m_logger->flush();
+    getMoreHistory();
 }
 
 void DumpBot::setShowUsersOnly(bool u)
@@ -197,5 +250,27 @@ void DumpBot::setShowUsersOnly(bool u)
     }
 }
 
+void DumpBot::setLogCriterion(unsigned int count)
+{
+    if (count < 1)
+    {
+        count = 100;
+    }
+    m_amount = count;
+    m_since = QDateTime();
+}
+
+void DumpBot::setLogCriterion(const QDateTime& since)
+{
+    if (!since.isValid())
+    {
+        setLogCriterion(100);
+    }
+    else
+    {
+        m_amount = 0;
+        m_since = since;
+    }
+}
 
 }  // namespace

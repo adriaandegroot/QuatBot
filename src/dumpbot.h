@@ -8,6 +8,7 @@
 #ifndef QUATBOT_DUMPBOT_H
 #define QUATBOT_DUMPBOT_H
 
+#include <QDateTime>
 #include <QObject>
 #include <QSet>
 #include <QString>
@@ -17,6 +18,7 @@ namespace Quotient
 {
     class Connection;
     class Room;
+    class RoomMessageEvent;
 }
 
 namespace QuatBot
@@ -57,6 +59,20 @@ public:
      */
     void setShowUsersOnly(bool u);
 
+    /** @brief Sets the time-range (logs all messages since the given stamp)
+     *
+     * This unsets the log-a-number-of-messages value. If @p since is not
+     * a valid timestamp, then instead this calls `setLogCriterion(100)`;
+     */
+    void setLogCriterion(const QDateTime& since);
+
+    /** @brief Sets the number of messages to log
+     *
+     * This unsets the log-messages-since value. If @p count is 0, uses
+     * 100 instead.
+     */
+    void setLogCriterion(unsigned int count);
+
 protected:
     /// @brief Called once the room is loaded for the first time.
     void baseStateLoaded();
@@ -66,6 +82,9 @@ protected:
     /// @brief Prints a list of users in the room (exit if m_showUsersOnly is set)
     void showUsers();
 
+    /// @brief Tries to get some more history
+    void getMoreHistory();
+
 private:
     Quotient::Room* m_room = nullptr;
     Quotient::Connection& m_conn;
@@ -74,6 +93,11 @@ private:
     QString m_roomName;
     bool m_newlyConnected = true;
     bool m_showUsersOnly = false;
+
+    QDateTime m_since;
+    unsigned int m_amount = 100;
+    QList<const Quotient::RoomMessageEvent*> m_messages;
+    QString m_previousChunkToken;
 };
 }  // namespace
 
