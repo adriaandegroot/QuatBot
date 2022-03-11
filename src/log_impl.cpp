@@ -7,6 +7,9 @@
 
 #include "log_impl.h"
 
+// Slightly weird: non-Quotient type for logging
+#include "dumpbot.h"
+
 #include <room.h>
 
 #include <QFile>
@@ -145,6 +148,19 @@ void LoggerFile::log(const QMatrixClient::RoomMessageEvent* message)
     auto d = qDebug().noquote().nospace();
     logX(d, message->originTimestamp().toString(Qt::DateFormat::ISODate), message->senderId(), message->plainBody());
 }
+
+void LoggerFile::log(const QuatBot::MessageData& message)
+{
+    if (m_stream)
+    {
+        ++m_lines;
+        logX(*m_stream, message.originTimestamp().toString(Qt::DateFormat::ISODate), message.senderId(), message.plainBody());
+    }
+
+    auto d = qDebug().noquote().nospace();
+    logX(d, message.originTimestamp().toString(Qt::DateFormat::ISODate), message.senderId(), message.plainBody());
+}
+
 
 QString LoggerFile::makeName(QString s)
 {

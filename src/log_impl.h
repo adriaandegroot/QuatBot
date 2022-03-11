@@ -18,14 +18,17 @@
 namespace QuatBot
 {
 
+class MessageData;
+
 class LoggerFile
 {
 public:
     LoggerFile();
     virtual ~LoggerFile();
 
-    void log(const QMatrixClient::RoomMessageEvent* message);
+    void log(const Quotient::RoomMessageEvent* message);
     void log(const QString& s);
+    void log(const MessageData& message);
 
     void open(const QString& name);
     void close();

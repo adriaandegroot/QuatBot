@@ -160,28 +160,60 @@ void DumpBot::baseStateLoaded()
     }
 }
 
-void log_messages(const Quotient::Room::Timeline& timeline, int from, int to, LoggerFile& logger)
+void log_messages(const MessageList& messages, int from, LoggerFile& logger)
 {
     bool first = true;
-    for (int it=from; it<=to; ++it)
+    for (int it=from; it<messages.count(); ++it)
     {
-        const QMatrixClient::RoomMessageEvent* event = timeline[it].viewAs<QMatrixClient::RoomMessageEvent>();
-        if (event)
+        if (first)
         {
-            if (first)
-            {
-                qDebug() << "Room messages" << from << '-' << to << event->originTimestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
-                first = false;
-            }
-            logger.log(event);
+            qDebug() << "Room messages" << from << '-' << (messages.count() - 1) << messages[it].originTimestamp().toString() << "arrived" << QDateTime::currentDateTimeUtc().toString();
+            first = false;
+        }
+        logger.log(messages[it]);
+    }
+}
+
+void DumpBot::finished()
+{
+    if (!isSatisfied())
+    {
+        qWarning() << "finished() called too soon.";
+    }
+
+    if (m_amount > 0)
+    {
+        const int from = m_amount <= m_messages.count() ? m_messages.count() - m_amount  : 0;
+        log_messages(m_messages, from, *m_logger);
+    }
+    else
+    {
+        auto first = std::find_if(m_messages.begin(), m_messages.end(), [since=m_since](const MessageData& e){ return since < e.originTimestamp(); });
+        if (first != m_messages.end())
+        {
+            log_messages(m_messages,
+                         std::distance(m_messages.begin(), first), *m_logger);
+        }
+        else
+        {
+            qWarning() << "No message after" << m_since;
         }
     }
 }
 
-static void organize_messages(QList<const Quotient::RoomMessageEvent*>& messages)
+MessageData::MessageData(const Quotient::RoomMessageEvent* p)
+    : m_dt(p->originTimestamp())
+    , m_id(p->id())
+    , m_sender(p->senderId())
+    , m_plainBody(p->plainBody())
 {
-    std::sort(messages.begin(), messages.end(), []( const Quotient::RoomMessageEvent* a, const Quotient::RoomMessageEvent* b) { return a->originTimestamp() < b->originTimestamp(); } );
-    auto duplicates = std::unique(messages.begin(), messages.end(), []( const Quotient::RoomMessageEvent* a, const Quotient::RoomMessageEvent* b) { return a->id() == b->id(); });
+}
+
+
+static void organize_messages(MessageList& messages)
+{
+    std::sort(messages.begin(), messages.end(), []( const MessageData& a, const MessageData& b) { return a.originTimestamp() < b.originTimestamp(); } );
+    auto duplicates = std::unique(messages.begin(), messages.end(), []( const MessageData& a, const MessageData& b) { return a.id() == b.id(); });
     messages.erase(duplicates, messages.end());
 
     if (messages.isEmpty())
@@ -190,21 +222,21 @@ static void organize_messages(QList<const Quotient::RoomMessageEvent*>& messages
     }
     else
     {
-        qDebug() << "There are now" << messages.count() << "messages from" << messages.first()->originTimestamp() << "to" << messages.last()->originTimestamp();
+        qDebug() << "There are now" << messages.count() << "messages from" << messages.first().originTimestamp() << "to" << messages.last().originTimestamp();
     }
 }
 
-static void add_messages(const Quotient::Room::Timeline& timeline, QList<const Quotient::RoomMessageEvent*>& messages)
+static void add_messages(const Quotient::Room::Timeline& timeline, MessageList& messages)
 {
     std::for_each(timeline.cbegin(), timeline.cend(),
-                    [&messages](const Quotient::TimelineItem& i){ const QMatrixClient::RoomMessageEvent* event = i.viewAs<QMatrixClient::RoomMessageEvent>(); if(event) { messages.append(event); } });
+                    [&messages](const Quotient::TimelineItem& i){ const QMatrixClient::RoomMessageEvent* event = i.viewAs<QMatrixClient::RoomMessageEvent>(); if(event) { messages.append(MessageData(event)); } });
     organize_messages(messages);
 }
 
-static void add_messages(const Quotient::RoomEvents& timeline, QList<const Quotient::RoomMessageEvent*>& messages)
+static void add_messages(const Quotient::RoomEvents& timeline, MessageList& messages)
 {
     std::for_each(timeline.cbegin(), timeline.cend(),
-                  [&messages](const std::unique_ptr<Quotient::RoomEvent>& e) { Quotient::visit(*e, [&messages](const Quotient::RoomMessageEvent& i) { messages.append(&i); }); } );
+                  [&messages](const std::unique_ptr<Quotient::RoomEvent>& e) { Quotient::visit(*e, [&messages](const Quotient::RoomMessageEvent& i) { messages.append(MessageData(&i)); }); } );
     organize_messages(messages);
 }
 
@@ -221,10 +253,10 @@ void DumpBot::getMoreHistory()
     {
         // const QString startId = m_messages.isEmpty() ? m_room->firstDisplayedEventId() : m_messages[0]->id();
         using GetRoomEventsJob = Quotient::GetRoomEventsJob;
-        qWarning() << "No history job!";
+        qWarning() << "No history job! Starting new one from" << m_previousChunkToken;
         p = new GetRoomEventsJob(m_room->id(), m_previousChunkToken, QStringLiteral("b"), QString(), 100);
         connect(p, &GetRoomEventsJob::finished, [p](){ qDebug() << "Extra history job finished"; p->deleteLater(); });
-        connect(p, &GetRoomEventsJob::success, [this, p](){ add_messages( p->chunk(), m_messages); });
+        connect(p, &GetRoomEventsJob::success, [this, p](){ add_messages( p->chunk(), m_messages); if (!isSatisfied()) { qDebug() << "Need more"; m_previousChunkToken = p->end(); QTimer::singleShot(0, this, &DumpBot::getMoreHistory); } else { qDebug() << "All done." ; QTimer::singleShot(0, this, &DumpBot::finished);} });
         m_conn.run(p);
     }
 }
@@ -238,7 +270,14 @@ void DumpBot::addedMessages(int from, int to)
     }
     m_room->markMessagesAsRead(timeline[to]->id());
     m_logger->flush();
-    getMoreHistory();
+    if (!isSatisfied())
+    {
+        getMoreHistory();
+    }
+    else
+    {
+        finished();
+    }
 }
 
 void DumpBot::setShowUsersOnly(bool u)
@@ -271,6 +310,32 @@ void DumpBot::setLogCriterion(const QDateTime& since)
         m_amount = 0;
         m_since = since;
     }
+}
+
+bool DumpBot::isSatisfied() const
+{
+    if (m_amount && m_messages.count() >= m_amount)
+    {
+        return true;
+    }
+    if (m_since.isValid() && !m_messages.isEmpty())
+    {
+        // We don't add messages **after** the end, so if the start timestamp
+        // is later than the most-recent message, we are not going to find any;
+        // pretend it's satisfied.
+        if (m_messages.last().originTimestamp() < m_since)
+        {
+            return true;
+        }
+        // This is the proper sense of "since": we have messages starting
+        // before the given time, assume we have all of them from "since"
+        // to most-recent.
+        if (m_since < m_messages.first().originTimestamp())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 }  // namespace

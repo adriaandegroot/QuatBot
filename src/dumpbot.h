@@ -25,6 +25,28 @@ namespace QuatBot
 {
 class LoggerFile;
 
+/** @brief A compacted form of a room message
+ *
+ * This contains only the minimum data needed to recreate or display
+ * a message in text form.
+ */
+class MessageData {
+public:
+    MessageData() {}
+    MessageData(const Quotient::RoomMessageEvent* p);
+
+    QDateTime originTimestamp() const { return m_dt; }
+    QString id() const { return m_id; }
+    QString senderId() const { return m_sender; }
+    QString plainBody() const { return m_plainBody; }
+private:
+    QDateTime m_dt;
+    QString m_id;
+    QString m_sender;
+    QString m_plainBody;
+};
+using MessageList = QList<MessageData>;
+
 /** @brief Top-level class for the DumpBot
  *
  * The bot is basically self-managing. Once you have a connection
@@ -85,6 +107,12 @@ protected:
     /// @brief Tries to get some more history
     void getMoreHistory();
 
+    /// @brief Are the since-or-amount settings satisfied?
+    bool isSatisfied() const;
+
+    /// @brief Called once the history is satisfied, does actual logging.
+    void finished();
+
 private:
     Quotient::Room* m_room = nullptr;
     Quotient::Connection& m_conn;
@@ -96,7 +124,7 @@ private:
 
     QDateTime m_since;
     unsigned int m_amount = 100;
-    QList<const Quotient::RoomMessageEvent*> m_messages;
+    MessageList m_messages;
     QString m_previousChunkToken;
 };
 }  // namespace
