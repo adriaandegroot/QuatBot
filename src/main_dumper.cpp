@@ -46,6 +46,8 @@ int main(int argc, char** argv)
                                          "List users in the room, then exit." );
     QCommandLineOption amountOption(QStringList{"n", "message-count"},
                                      "Number of messages to load", "count");
+    QCommandLineOption sinceOption(QStringList{"s", "since"},
+                                   "Start date-time to load (yyyy-MM-ddTHH:mm:ss)", "since");
     QCommandLineParser parser;
     parser.setApplicationDescription("History-dumper on Matrix");
     parser.addHelpOption();
@@ -54,6 +56,7 @@ int main(int argc, char** argv)
     parser.addOption(passOption);
     parser.addOption(usersOnlyOption);
     parser.addOption(amountOption);
+    parser.addOption(sinceOption);
     parser.addPositionalArgument("rooms", "Room names to join", "[rooms..]");
     parser.process(app);
 
@@ -61,6 +64,12 @@ int main(int argc, char** argv)
     {
         qWarning() << "Usage: qb-dumper <options> <room..>\n"
             "  Give at least one room name.\n";
+        return 1;
+    }
+    if (parser.isSet(amountOption) && parser.isSet(sinceOption))
+    {
+        qWarning() << "Usage: qb-dumper <options> <room..>\n"
+            "  Specify only one of -n|--message-count and -s|--since\n";
         return 1;
     }
 
@@ -92,6 +101,18 @@ int main(int argc, char** argv)
                 if (parser.isSet(amountOption))
                 {
                     bot->setLogCriterion(parser.value(amountOption).toUInt());
+                }
+                if (parser.isSet(sinceOption))
+                {
+                    QDateTime d = QDateTime::fromString(parser.value(sinceOption), Qt::ISODate);
+                    if (!d.isValid())
+                    {
+                        qWarning() << "--since value" << parser.value(sinceOption) << "is ignored.";
+                    }
+                    else
+                    {
+                        bot->setLogCriterion(d);
+                    }
                 }
             }
         }
