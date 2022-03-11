@@ -318,22 +318,9 @@ bool DumpBot::isSatisfied() const
     {
         return true;
     }
-    if (m_since.isValid() && !m_messages.isEmpty())
+    if (m_since.isValid() && !m_messages.isEmpty() & m_messages.first().originTimestamp() < m_since)
     {
-        // We don't add messages **after** the end, so if the start timestamp
-        // is later than the most-recent message, we are not going to find any;
-        // pretend it's satisfied.
-        if (m_messages.last().originTimestamp() < m_since)
-        {
-            return true;
-        }
-        // This is the proper sense of "since": we have messages starting
-        // before the given time, assume we have all of them from "since"
-        // to most-recent.
-        if (m_since < m_messages.first().originTimestamp())
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }
