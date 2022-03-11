@@ -5,6 +5,12 @@
 This is the changelog for QuatBot. For each release, the major changes and
 contributors are listed.
 
+# 0.3 (2022-03-11) #
+
+- Establish coding style and a `CONTRIBUTING.md` file
+- Add a `qb-dumper` that can be used to retroactively read from a room
+  and log it (in case a meeting was missed)
+
 # 0.2 (2022-01-14) #
 
 - First publicised release of QuatBot
