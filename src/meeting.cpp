@@ -462,7 +462,11 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
             // a subcommand, not their main command.
             CommandArgs logCommand(cmd);
             int year = 0;
-            int week = QDate::currentDate().weekNumber(&year);
+            QString week = QString::number(QDate::currentDate().weekNumber(&year));
+            if (week.length() < 2)
+            {
+                week.prepend('0');
+            }
             logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
             logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
             logCommand.args = QStringList { "?quiet" };
