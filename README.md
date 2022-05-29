@@ -111,4 +111,11 @@ it "get" a bit of the past. This was added to be able to salvage the
 log of a meeting from the past, and is of limited functionality.
 
 The dumper has the same options as quatbot, and a `--since` argument
-to indicate what chunk of history to retrieve.
+to indicate what chunk of history to retrieve. The format is
+rather inflexible. Use `--since 2022-05-27T12:00`, and consider the `T`
+in there to be required: it must be the letter `T`.
+
+The dumper prints to standard output, and also writes `/tmp/quatbot.log`
+(a hard-coded filename) with the messages.
+
+
