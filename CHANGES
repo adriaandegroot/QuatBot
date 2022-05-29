@@ -5,6 +5,11 @@
 This is the changelog for QuatBot. For each release, the major changes and
 contributors are listed.
 
+# 0.3.1 (2022-05-29)
+
+- Split user- and devel- guides.
+- Log always with 2-digit week numbers in meeting.
+
 # 0.3 (2022-03-11) #
 
 - Establish coding style and a `CONTRIBUTING.md` file
