@@ -134,6 +134,9 @@ public:
     Watcher* getWatcher(const QString& name);
     QStringList watcherNames() const;
 
+    /// @brief All the operator ids from the room
+    QStringList operatorIds();
+
 protected:
     /// @brief Called once the room is loaded for the first time.
     void baseStateLoaded();

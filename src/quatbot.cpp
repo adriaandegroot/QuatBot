@@ -467,6 +467,11 @@ QStringList Bot::watcherNames() const
     return names;
 }
 
+QStringList Bot::operatorIds()
+{
+    return m_operators.values();
+}
+
 static QSet<QString> commandSet(const QStringList& commands)
 {
     return QSet<QString>(commands.begin(), commands.end());
