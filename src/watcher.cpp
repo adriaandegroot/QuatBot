@@ -35,6 +35,12 @@ CommandArgs::CommandArgs(QString s)
     }
 }
 
+CommandArgs::CommandArgs(const QString& s, InternalCommand m)
+    : CommandArgs(isCommand(s) ? s : (COMMAND_PREFIX + s))
+{
+    internalOperator = true;
+}
+
 CommandArgs::CommandArgs(const QMatrixClient::RoomMessageEvent* e)
     : CommandArgs(e->plainBody())
 {

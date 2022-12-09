@@ -33,6 +33,10 @@ namespace QuatBot
  */
 struct CommandArgs
 {
+    /** @brief Tag class for special internal commands.
+     */
+    struct InternalCommand {};
+
     /** @brief Build a command list from a string.
      * 
      * This kind of command does not carry id or user information.
@@ -40,6 +44,8 @@ struct CommandArgs
      * an invalid command.
      */
     explicit CommandArgs(QString);  // Copied because it's modified in the method
+    explicit CommandArgs(const QString& s, InternalCommand m);
+
     /** @brief Build a command list from an event.
      * 
      * This kind of command carries the id and user information from
@@ -73,6 +79,7 @@ struct CommandArgs
     QString user;  ///< user Id, if available. Used for access-control (ops)
     QString command;
     QStringList args;
+    bool internalOperator = false;
 };
 
 /** @brief Base class for handlers of a certain class of commands
