@@ -408,7 +408,7 @@ bool Bot::checkOps(const QString& user, Silent s)
 
 bool Bot::checkOps(const QuatBot::CommandArgs& cmd, Silent s)
 {
-    return checkOps(cmd.user, s);
+    return cmd.internalOperator || checkOps(cmd.user, s);
 }
 
 bool Bot::checkOps(const QuatBot::CommandArgs& cmd)
