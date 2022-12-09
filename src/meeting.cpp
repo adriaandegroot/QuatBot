@@ -173,7 +173,7 @@ struct Meeting::Private
                     m_bot->message(b.toString());
                 }
             }
-            m_waiting.stop();
+            end();
             return;
         }
 
@@ -554,11 +554,14 @@ void Meeting::Private::timeout()
 
 void Meeting::Private::end()
 {
-    m_state = State::None;
     m_waiting.stop();
     m_silence.stop();
-    m_bot->message(QString("The meeting has been forcefully ended."));
-    changeLoggingSetting(*m_bot, CommandArgs(QString(), CommandArgs::InternalCommand {}), false);
+    if (m_state != State::None)
+    {
+        m_state = State::None;
+        m_bot->message(QString("The meeting has been forcefully ended."));
+        changeLoggingSetting(*m_bot, CommandArgs(QString(), CommandArgs::InternalCommand {}), false);
+    }
 }
 
 }  // namespace QuatBot
