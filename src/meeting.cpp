@@ -9,11 +9,29 @@
 
 #include "quatbot.h"
 
-#ifdef ENABLE_MEETING_FINISH_REMINDER
 #include <random>
-#endif // ENABLE_MEETING_FINISH_REMINDER
 
 #include <room.h>
+
+namespace
+{
+QString pickArbitraryId(const QStringList& ids)
+{
+    if (ids.isEmpty())
+    {
+        return QStringLiteral("anybody");
+    }
+    if (ids.size() == 1)
+    {
+        return ids.first();
+    }
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution dist(0, ids.size() - 1);
+    int randomOperatorIndex = dist(generator);
+    return ids.at(randomOperatorIndex);
+}
+}  // namespace
 
 namespace QuatBot
 {
@@ -38,6 +56,7 @@ struct Breakout
         return parts.join(' ');
     }
 };
+
 
 struct Meeting::Private
 {
@@ -141,15 +160,8 @@ struct Meeting::Private
         else
         {
             m_bot->message(QString("%1, you're up (after that, we're done!).").arg(m_current));
-
-#ifdef ENABLE_MEETING_FINISH_REMINDER
-            std::default_random_engine generator;
-            std::uniform_int_distribution dist(0, m_bot->operatorIds().size()-1);
-            int randomOperatorIndex = dist(generator);
-            QString randomOperator = m_bot->operatorIds().at(randomOperatorIndex);
-
-            m_bot->message(QString("%1 or any operator, don't forget to call ~next to finish the meeting.").arg(randomOperator));
-#endif // ENABLE_MEETING_FINISH_REMINDER
+            m_bot->message(QString("%1 or any operator, don't forget to call ~next to finish the meeting.")
+                               .arg(pickArbitraryId(m_bot->operatorIds())));
         }
         m_reminderCount = 2;
         m_waiting.start(30000);  // half a minute to reminder
