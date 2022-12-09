@@ -9,6 +9,7 @@
 
 #include "quatbot.h"
 
+#include <chrono>
 #include <random>
 
 #include <room.h>
@@ -98,7 +99,7 @@ struct Meeting::Private
             m_participantsDone.insert(m_bot->botUser());
         }
         m_reminderCount = 2;
-        m_waiting.start(60000);  // one minute until reminder
+        m_waiting.start(std::chrono::seconds(60));
     }
 
     /// @brief Start the meeting (main part)
@@ -164,7 +165,7 @@ struct Meeting::Private
                                .arg(pickArbitraryId(m_bot->operatorIds())));
         }
         m_reminderCount = 2;
-        m_waiting.start(30000);  // half a minute to reminder
+        m_waiting.start(std::chrono::seconds(30));
     }
 
     void breakout(const QString& user, QStringList b)  // Copy since we're going to modify it
