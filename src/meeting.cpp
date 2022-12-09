@@ -67,6 +67,8 @@ struct Meeting::Private
     {
         QObject::connect(&m_waiting, &QTimer::timeout, [this]() { this->timeout(); });
         m_waiting.setSingleShot(true);
+        QObject::connect(&m_silence, &QTimer::timeout, [this]() { this->end(); });
+        m_silence.setSingleShot(true);
     }
 
     bool hasStarted() const { return m_state != State::None; }
@@ -200,6 +202,14 @@ struct Meeting::Private
     }
 
     void timeout();
+    void end();  // Timeout (30 minutes of silence) to forcibly end the meeting
+    void resetSilence()
+    {
+        if (m_silence.isActive() || (m_state != State::None))
+        {
+            m_silence.start(std::chrono::minutes(30));
+        }
+    }
 
     Bot* m_bot;
     State m_state;
@@ -208,7 +218,8 @@ struct Meeting::Private
     QList<Breakout> m_breakouts;
     QString m_chair;
     QString m_current;
-    QTimer m_waiting;
+    QTimer m_waiting;  // For reminders during the meeting (30 or 60 seconds)
+    QTimer m_silence;  // for ending the meeting due to silence (30 minutes)
     int m_reminderCount = 0;
     bool m_currentSeen = false;
 };
@@ -235,6 +246,7 @@ const QStringList& Meeting::moduleCommands() const
 
 void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
 {
+    d->resetSilence();
     // New speaker?
     if (d->hasStarted() && d->isNew(e->senderId()))
     {
@@ -248,6 +260,7 @@ void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
 
 void Meeting::handleCommand(const CommandArgs& cmd)
 {
+    d->resetSilence();
     if (cmd.command == QStringLiteral("status"))
     {
         status();
@@ -424,6 +437,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         {
             d->m_state = State::None;
             d->m_waiting.stop();
+            d->m_silence.stop();
             message(QString("The meeting has been forcefully ended."));
             enableLogging(cmd, false);
         }
@@ -530,6 +544,15 @@ void Meeting::Private::timeout()
     }
     m_bot->message(Bot::Flush {});
     m_waiting.start();
+}
+
+void Meeting::Private::end()
+{
+    m_state = State::None;
+    m_waiting.stop();
+    m_silence.stop();
+    m_bot->message(QString("The meeting has been forcefully ended."));
+    enableLogging({}, false);
 }
 
 }  // namespace QuatBot
