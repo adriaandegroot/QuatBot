@@ -32,6 +32,30 @@ QString pickArbitraryId(const QStringList& ids)
     int randomOperatorIndex = dist(generator);
     return ids.at(randomOperatorIndex);
 }
+
+void changeLoggingSetting(QuatBot::Bot& bot, const QuatBot::CommandArgs& cmd, bool b)
+{
+    auto* w = bot.getWatcher("log");
+    if (w)
+    {
+        // Pass a command to the log watcher, with the same (ops!)
+        // user id, but a fake id so that the log file gets a
+        // sensible name. Remember that the named watchers expect
+        // a subcommand, not their main command.
+        QuatBot::CommandArgs logCommand(cmd);
+        int year = 0;
+        QString week = QString::number(QDate::currentDate().weekNumber(&year));
+        if (week.length() < 2)
+        {
+            week.prepend('0');
+        }
+        logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
+        logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
+        logCommand.args = QStringList { "?quiet" };
+        w->handleCommand(logCommand);
+    }
+}
+
 }  // namespace
 
 namespace QuatBot
@@ -493,25 +517,7 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
 {
     if (m_bot->checkOps(cmd, Bot::Silent {}))
     {
-        Watcher* w = m_bot->getWatcher("log");
-        if (w)
-        {
-            // Pass a command to the log watcher, with the same (ops!)
-            // user id, but a fake id so that the log file gets a
-            // sensible name. Remember that the named watchers expect
-            // a subcommand, not their main command.
-            CommandArgs logCommand(cmd);
-            int year = 0;
-            QString week = QString::number(QDate::currentDate().weekNumber(&year));
-            if (week.length() < 2)
-            {
-                week.prepend('0');
-            }
-            logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
-            logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
-            logCommand.args = QStringList { "?quiet" };
-            w->handleCommand(logCommand);
-        }
+        changeLoggingSetting(*m_bot, cmd, b);
     }
 }
 
@@ -552,7 +558,7 @@ void Meeting::Private::end()
     m_waiting.stop();
     m_silence.stop();
     m_bot->message(QString("The meeting has been forcefully ended."));
-    enableLogging({}, false);
+    changeLoggingSetting(*m_bot, CommandArgs(QString(), CommandArgs::InternalCommand {}), false);
 }
 
 }  // namespace QuatBot
