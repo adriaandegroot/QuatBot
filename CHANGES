@@ -5,6 +5,13 @@
 This is the changelog for QuatBot. For each release, the major changes and
 contributors are listed.
 
+# 0.3.2 (unreleased)
+
+New contributors to this release: Alexey Andreyev
+
+- Fix so that the cowsay feature actually works (Alexey).
+- Adds a reminder to the last person (chair) to close the meeting (Alexey).
+
 # 0.3.1 (2022-05-29)
 
 - Split user- and devel- guides.
