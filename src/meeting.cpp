@@ -9,11 +9,54 @@
 
 #include "quatbot.h"
 
-#ifdef ENABLE_MEETING_FINISH_REMINDER
+#include <chrono>
 #include <random>
-#endif // ENABLE_MEETING_FINISH_REMINDER
 
 #include <room.h>
+
+namespace
+{
+QString pickArbitraryId(const QStringList& ids)
+{
+    if (ids.isEmpty())
+    {
+        return QStringLiteral("anybody");
+    }
+    if (ids.size() == 1)
+    {
+        return ids.first();
+    }
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution dist(0, ids.size() - 1);
+    int randomOperatorIndex = dist(generator);
+    return ids.at(randomOperatorIndex);
+}
+
+void changeLoggingSetting(QuatBot::Bot& bot, const QuatBot::CommandArgs& cmd, bool b)
+{
+    auto* w = bot.getWatcher("log");
+    if (w)
+    {
+        // Pass a command to the log watcher, with the same (ops!)
+        // user id, but a fake id so that the log file gets a
+        // sensible name. Remember that the named watchers expect
+        // a subcommand, not their main command.
+        QuatBot::CommandArgs logCommand(cmd);
+        int year = 0;
+        QString week = QString::number(QDate::currentDate().weekNumber(&year));
+        if (week.length() < 2)
+        {
+            week.prepend('0');
+        }
+        logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
+        logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
+        logCommand.args = QStringList { "?quiet" };
+        w->handleCommand(logCommand);
+    }
+}
+
+}  // namespace
 
 namespace QuatBot
 {
@@ -39,6 +82,7 @@ struct Breakout
     }
 };
 
+
 struct Meeting::Private
 {
     explicit Private(Bot* bot)
@@ -47,6 +91,8 @@ struct Meeting::Private
     {
         QObject::connect(&m_waiting, &QTimer::timeout, [this]() { this->timeout(); });
         m_waiting.setSingleShot(true);
+        QObject::connect(&m_silence, &QTimer::timeout, [this]() { this->end(); });
+        m_silence.setSingleShot(true);
     }
 
     bool hasStarted() const { return m_state != State::None; }
@@ -79,7 +125,7 @@ struct Meeting::Private
             m_participantsDone.insert(m_bot->botUser());
         }
         m_reminderCount = 2;
-        m_waiting.start(60000);  // one minute until reminder
+        m_waiting.start(std::chrono::seconds(60));
     }
 
     /// @brief Start the meeting (main part)
@@ -127,7 +173,7 @@ struct Meeting::Private
                     m_bot->message(b.toString());
                 }
             }
-            m_waiting.stop();
+            end();
             return;
         }
 
@@ -141,18 +187,11 @@ struct Meeting::Private
         else
         {
             m_bot->message(QString("%1, you're up (after that, we're done!).").arg(m_current));
-
-#ifdef ENABLE_MEETING_FINISH_REMINDER
-            std::default_random_engine generator;
-            std::uniform_int_distribution dist(0, m_bot->operatorIds().size()-1);
-            int randomOperatorIndex = dist(generator);
-            QString randomOperator = m_bot->operatorIds().at(randomOperatorIndex);
-
-            m_bot->message(QString("%1 or any operator, don't forget to call ~next to finish the meeting.").arg(randomOperator));
-#endif // ENABLE_MEETING_FINISH_REMINDER
+            m_bot->message(QString("%1 or any operator, don't forget to call ~next to finish the meeting.")
+                               .arg(pickArbitraryId(m_bot->operatorIds())));
         }
         m_reminderCount = 2;
-        m_waiting.start(30000);  // half a minute to reminder
+        m_waiting.start(std::chrono::seconds(30));
     }
 
     void breakout(const QString& user, QStringList b)  // Copy since we're going to modify it
@@ -187,6 +226,14 @@ struct Meeting::Private
     }
 
     void timeout();
+    void end();  // Timeout (30 minutes of silence) to forcibly end the meeting
+    void resetSilence()
+    {
+        if (m_silence.isActive() || (m_state != State::None))
+        {
+            m_silence.start(std::chrono::minutes(30));
+        }
+    }
 
     Bot* m_bot;
     State m_state;
@@ -195,7 +242,8 @@ struct Meeting::Private
     QList<Breakout> m_breakouts;
     QString m_chair;
     QString m_current;
-    QTimer m_waiting;
+    QTimer m_waiting;  // For reminders during the meeting (30 or 60 seconds)
+    QTimer m_silence;  // for ending the meeting due to silence (30 minutes)
     int m_reminderCount = 0;
     bool m_currentSeen = false;
 };
@@ -222,6 +270,7 @@ const QStringList& Meeting::moduleCommands() const
 
 void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
 {
+    d->resetSilence();
     // New speaker?
     if (d->hasStarted() && d->isNew(e->senderId()))
     {
@@ -235,6 +284,7 @@ void Meeting::handleMessage(const Quotient::RoomMessageEvent* e)
 
 void Meeting::handleCommand(const CommandArgs& cmd)
 {
+    d->resetSilence();
     if (cmd.command == QStringLiteral("status"))
     {
         status();
@@ -411,6 +461,7 @@ void Meeting::handleCommand(const CommandArgs& cmd)
         {
             d->m_state = State::None;
             d->m_waiting.stop();
+            d->m_silence.stop();
             message(QString("The meeting has been forcefully ended."));
             enableLogging(cmd, false);
         }
@@ -466,25 +517,7 @@ void Meeting::enableLogging(const CommandArgs& cmd, bool b)
 {
     if (m_bot->checkOps(cmd, Bot::Silent {}))
     {
-        Watcher* w = m_bot->getWatcher("log");
-        if (w)
-        {
-            // Pass a command to the log watcher, with the same (ops!)
-            // user id, but a fake id so that the log file gets a
-            // sensible name. Remember that the named watchers expect
-            // a subcommand, not their main command.
-            CommandArgs logCommand(cmd);
-            int year = 0;
-            QString week = QString::number(QDate::currentDate().weekNumber(&year));
-            if (week.length() < 2)
-            {
-                week.prepend('0');
-            }
-            logCommand.id = QString("notes_%1_%2").arg(year).arg(week);
-            logCommand.command = b ? QStringLiteral("on") : QStringLiteral("off");
-            logCommand.args = QStringList { "?quiet" };
-            w->handleCommand(logCommand);
-        }
+        changeLoggingSetting(*m_bot, cmd, b);
     }
 }
 
@@ -517,6 +550,18 @@ void Meeting::Private::timeout()
     }
     m_bot->message(Bot::Flush {});
     m_waiting.start();
+}
+
+void Meeting::Private::end()
+{
+    m_waiting.stop();
+    m_silence.stop();
+    if (m_state != State::None)
+    {
+        m_state = State::None;
+        m_bot->message(QString("The meeting has been forcefully ended."));
+        changeLoggingSetting(*m_bot, CommandArgs(QString(), CommandArgs::InternalCommand {}), false);
+    }
 }
 
 }  // namespace QuatBot

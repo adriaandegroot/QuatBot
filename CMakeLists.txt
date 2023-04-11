@@ -19,7 +19,6 @@ option(
     OFF
 )
 option(COFFEE "Enables the ~coffee module" ON)
-option(MEETING_FINISH_REMINDER "Enables reminder to finish the meeting" ON)
 
 find_package(Qt5 5.15 REQUIRED COMPONENTS Core Gui Multimedia Network)
 find_package(Quotient 0.6.5 REQUIRED)
@@ -51,7 +50,4 @@ if(COFFEE)
 endif()
 if(COWSAY)
     target_compile_definitions(quatbot PUBLIC ENABLE_COWSAY)
-endif()
-if(MEETING_FINISH_REMINDER)
-    target_compile_definitions(quatbot PUBLIC ENABLE_MEETING_FINISH_REMINDER)
 endif()
